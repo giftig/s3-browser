@@ -44,16 +44,17 @@ _s3() {
   aws s3 ls "$@"
 }
 
+# Autocomplete path when hitting TAB on cd or ls commands
 _autocomplete_path() {
   local PREFIX="${READLINE_LINE:0:3}"
 
   if [[ "$PREFIX" != 'ls ' && "$PREFIX" != 'cd ' ]]; then
-    echo "$PREFIX" > /tmp/lol.txt
     return 0
   fi
 
   local SEARCH_PATH='.'
   local LAST_SEGMENT=''
+  local COMPLETION=''
 
   # We'll try to complete the path by making the current path under cursor
   # absolute and running ls to look for options
@@ -81,15 +82,31 @@ _autocomplete_path() {
 
   # Find relevant subkeys for our word and generate suggestions
   LS_RESULTS=$(_s3 "s3://$SEARCH_PATH" | sed -E 's/^.+ //' | tr '\r\n' ' ')
-  COMPREPLY=($(compgen -W "$LS_RESULTS" "$LAST_SEGMENT"))
+
+  COMP_OPTS=($(compgen -W "$LS_RESULTS" "$LAST_SEGMENT"))
 
   # Take the first suggestion; if there isn't one, we'll leave the partial word segment in place
-  local COMPLETION="${COMPREPLY[0]}"
+  COMPLETION="${COMP_OPTS[0]}"
   if [[ "$COMPLETION" == '' ]]; then
     COMPLETION="$LAST_SEGMENT"
   fi
 
-  echo "$SEARCH_PATH >> $LAST_SEGMENT >> $COMPLETION" >> /tmp/lol.txt
+  # Now check if the trailing segment of the path was identical to one of the results
+  # If it's identical to the only result, we'll add a slash and assume we want to continue.
+  # If there's a subsequent result, we'll cycle forward to that result instead; the idea is
+  # they probably just hit tab and got this result but wanted a different one.
+  if [[ "$LAST_SEGMENT" == "$LS_RESULTS" ]]; then
+    COMPLETION="$LAST_SEGMENT/"
+  else
+    NEXT_WORD=$(
+      echo "$LS_RESULTS$LS_RESULTS" |
+        fgrep " $LAST_SEGMENT " |
+        sed -E 's/^.*('"$LAST_SEGMENT"') +([^ ]+).*$/\2/'
+    )
+    if [[ "$NEXT_WORD" != '' ]]; then
+      COMPLETION="$NEXT_WORD"
+    fi
+  fi
 
   # Now just set the current line to our partial line + suggested completion
   # and make sure the cursor ends up at the end of the line again
@@ -131,7 +148,6 @@ _prompt() {
   local ARGS=''
   local cmd=''
 
-#  complete -F _autocomplete_path ls
   bind -x '"\t":"_autocomplete_path"'
   read -ep "$(eval 'echo -n "'"$PROMPT"'"')" cmd
 
@@ -152,6 +168,9 @@ _prompt() {
       ;;
     pwd)
       _pwd $ARGS
+      ;;
+    clear)
+      clear
       ;;
     exit)
       _exit $ARGS
