@@ -146,7 +146,12 @@ _history_forward() {
 
 # AWS UTILS
 _is_path() {
-  aws s3 ls "s3://$1" &> /dev/null
+  RES=$(_s3 "s3://$1" 2>&1 > /dev/null)
+  RES_STATUS="$?"
+  if [[ "$RES_STATUS" != 0 ]]; then
+    echo "$(tput setaf 1)$RES$(tput sgr0)"
+  fi
+  return $RES_STATUS
 }
 
 # COMMANDS
