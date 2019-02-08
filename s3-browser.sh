@@ -3,6 +3,10 @@
 set -o vi
 
 CURRENT_PATH=''
+HISTORY_FILE="$HOME/.s3_browser_history"
+HISTORY_POS=0
+HISTORY_CACHE=''
+MAX_HISTORY_LINES=10000
 PROMPT='s3://$(tput setaf 6)$CURRENT_PATH$(tput sgr0)> '
 
 # STRING AND PATH UTILS
@@ -44,6 +48,7 @@ _s3() {
   aws s3 ls "$@"
 }
 
+# PROMPT UTILS
 # Autocomplete path when hitting TAB on cd or ls commands
 _autocomplete_path() {
   local PREFIX="${READLINE_LINE:0:3}"
@@ -114,6 +119,31 @@ _autocomplete_path() {
   READLINE_POINT="${#READLINE_LINE}"
 }
 
+_history_back() {
+  if [[ "$HISTORY_POS" == 0 ]]; then
+    HISTORY_CACHE="$READLINE_LINE"
+  fi
+  HISTORY_POS=$(expr $HISTORY_POS + 1)
+  READLINE_LINE=$(tail -n $HISTORY_POS "$HISTORY_FILE" | head -n 1)
+  READLINE_POINT="${#READLINE_LINE}"
+}
+
+_history_forward() {
+  if [[ "$HISTORY_POS" == 0 ]]; then
+    return 0
+  fi
+
+  HISTORY_POS=$(expr $HISTORY_POS - 1)
+
+  if [[ "$HISTORY_POS" == 0 ]]; then
+    READLINE_LINE="$HISTORY_CACHE"
+  else
+    READLINE_LINE=$(tail -n $HISTORY_POS "$HISTORY_FILE" | head -n 1)
+  fi
+
+  READLINE_POINT="${#READLINE_LINE}"
+}
+
 # AWS UTILS
 _is_path() {
   aws s3 ls "s3://$1" &> /dev/null
@@ -138,6 +168,7 @@ _pwd() {
 }
 
 _exit() {
+  # TODO: Truncate history file to $MAX_HISTORY_LINES if necessary
   exit "${1:-0}"
 }
 
@@ -149,7 +180,12 @@ _prompt() {
   local cmd=''
 
   bind -x '"\t":"_autocomplete_path"'
+  bind -x '"\e[A":"_history_back"'
+  bind -x '"\e[B":"_history_forward"'
   read -ep "$(eval 'echo -n "'"$PROMPT"'"')" cmd
+
+  echo "$cmd" >> "$HISTORY_FILE"
+  HISTORY_POS=0
 
   if echo "$cmd" | fgrep ' ' &> /dev/null; then
     BASE_CMD=$(echo "$cmd" | cut -d ' ' -f 1)
