@@ -179,9 +179,6 @@ _prompt() {
   local ARGS=''
   local cmd=''
 
-  bind -x '"\t":"_autocomplete_path"'
-  bind -x '"\e[A":"_history_back"'
-  bind -x '"\e[B":"_history_forward"'
   read -ep "$(eval 'echo -n "'"$PROMPT"'"')" cmd
 
   echo "$cmd" >> "$HISTORY_FILE"
@@ -237,6 +234,10 @@ _cd() {
 if [[ "$#" != 0 ]]; then
   _cd "$1"
 fi
+
+bind -x '"\t":"_autocomplete_path"'
+bind -x '"\e[A":"_history_back"'
+bind -x '"\e[B":"_history_forward"'
 
 while true; do
   _prompt
