@@ -156,15 +156,14 @@ _is_path() {
 
 # COMMANDS
 _ls() {
-  local p=$(_combine_paths "$CURRENT_PATH" "${1:-.}")
+  local p=$(_combine_paths "$CURRENT_PATH" "${1:-./}")
 
   _is_path "$p" || {
     echo "cannot access '$1': no such s3 file or directory" >&2
     return 1
   }
 
-#  local res=$(aws s3 ls "s3://$p")
-  _s3 --human-readable "s3://$p" | sed -E 's/^.+ //'
+  _s3 "s3://$p" | sed -E 's/^.+ //'
 }
 
 
@@ -212,6 +211,8 @@ _prompt() {
       ;;
     exit)
       _exit $ARGS
+      ;;
+    '')
       ;;
     *)
       echo "Unrecognised command: '$BASE_CMD'" >&2
