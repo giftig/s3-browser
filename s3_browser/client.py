@@ -7,9 +7,14 @@ class S3Client(object):
     the boto s3 client and adding memoisation and a more concise and path-like
     API
     """
-    def __init__(self):
+    def __init__(self, debug=False):
         self.boto = boto3.client('s3')
         self.path_cache = {}
+
+    # FIXME: rm
+    def _debug(self, msg):
+        with open('/tmp/s3-client-debug.log', 'a') as f:
+            f.write(msg + '\n')
 
     def ls(self, path, path_fragment=False):
         """
@@ -17,8 +22,9 @@ class S3Client(object):
 
         :type path: s3_browser.paths.S3Path
         """
-        p = str(path)
-        cached = self.path_cache.get(p)
+        self._debug('ls called: {}, {}'.format(path, path_fragment))
+        cache_key = (str(path), path_fragment)
+        cached = self.path_cache.get(cache_key)
         if cached is not None:
             return cached
 
@@ -37,6 +43,11 @@ class S3Client(object):
             last_slash = search_path.rfind('/')
             search_len = last_slash + 1 if last_slash != -1 else 0
 
+            self._debug(
+                'Listing objects. full path: "{}", search_path: "{}"'.format(
+                    path, search_path
+                )
+            )
             # TODO: [ab]use pagination (see boto/boto3#134)
             res = self.boto.list_objects(
                 Bucket=path.bucket,
@@ -49,14 +60,17 @@ class S3Client(object):
                 for r in res.get('CommonPrefixes', [])
             ]
             keys = [
-                r['Key'] for r in res.get('Contents', [])
+                r['Key'][search_len:] for r in res.get('Contents', [])
                 if r['Key'] != search_path
             ]
+            self._debug(
+                'Results: {} -- {}'.format(prefixes, keys)
+            )
             return prefixes + keys
 
         res = _fetch()
         if res:
-            self.path_cache[p] = res
+            self.path_cache[cache_key] = res
 
         return res
 
