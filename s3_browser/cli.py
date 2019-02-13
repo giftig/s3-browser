@@ -5,6 +5,7 @@ import logging
 import os
 import readline
 import sys
+import textwrap
 
 from s3_browser import client
 from s3_browser import completion
@@ -15,6 +16,16 @@ logger = logging.getLogger(__name__)
 
 class Cli(object):
     DEFAULT_PS1 = 's3://\001\x1b[36m\002{path_short}\001\x1b[0m\002> '
+    SPLASH = textwrap.dedent(
+        """
+        Welcome to the interactive AWS S3 navigator.
+        Written by Giftiger Wunsch.
+
+        Contribute: https://www.github.com/giftig/s3_browser/
+
+        Type 'help' for help.
+        """
+    )
 
     def __init__(self, working_dir=None, ps1=None, history_file=None):
         self.history_file = history_file
@@ -66,6 +77,33 @@ class Cli(object):
             )
         )
 
+    def help(self):
+        print(textwrap.dedent(
+            """
+            Available commands:
+
+            help            Print this help message
+            exit            Bye!
+
+            cd [path]       Change directory
+            clear           Clear the screen
+            ll [path]       Like ls, but show modified times and object types
+            ls [path]       List the contents of an s3 "directory"
+            prompt [str]    Override the current prompt string
+            pwd             Print the current working directory
+
+            Tab completion is available on cd, ls, and ll.
+
+            Command history is available (stored in ~/.s3_browser_history)
+            """
+        ))
+
+    def override_prompt(self, *args):
+        if not args:
+            self.ps1 = self.DEFAULT_PS1
+        else:
+            self.ps1 = ' '.join(args) + ' '
+
     def exit(self):
         if self.history_file:
             readline.write_history_file(self.history_file)
@@ -84,8 +122,10 @@ class Cli(object):
             'cd': self.cd,
             'clear': lambda: os.system('clear'),
             'exit': self.exit,
+            'help': self.help,
             'll': _ll,
             'ls': self.ls,
+            'prompt': self.override_prompt,
             'pwd': lambda: print('s3://{}'.format(self.current_path))
         }.get(cmd[0])
 
@@ -102,6 +142,8 @@ class Cli(object):
     def read_loop(self):
         if self.history_file and os.path.isfile(self.history_file):
             readline.read_history_file(self.history_file)
+
+        print(self.SPLASH)
 
         while True:
             try:
@@ -147,6 +189,8 @@ def main():
     if args.debug:
         configure_debug_logging()
         logger.info('Starting s3 browser in debug mode')
+    else:
+        logging.disable(logging.CRITICAL)
 
     Cli(
         working_dir=args.working_dir,
