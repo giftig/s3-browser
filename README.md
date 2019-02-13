@@ -6,4 +6,4 @@ Written in python.
 
 ## Installation
 
-pip coming soon!
+`pip install s3_browser`

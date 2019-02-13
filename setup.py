@@ -13,7 +13,7 @@ def readme_content():
 
 setup(
     name='s3_browser',
-    version='0.1',
+    version='0.1.1',
     packages=['s3_browser'],
     entry_points={
         'console_scripts': [
@@ -21,6 +21,7 @@ setup(
         ]
     },
     install_requires=['boto3>=1.9.0'],
+    python_requires='>=3.2',
     long_description=readme_content(),
     long_description_content_type='text/markdown'
 )
