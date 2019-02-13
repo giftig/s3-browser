@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 import os
 import readline
 import sys
@@ -8,6 +9,8 @@ import sys
 from s3_browser import client
 from s3_browser import completion
 from s3_browser import paths
+
+logger = logging.getLogger(__name__)
 
 
 class Cli(object):
@@ -93,8 +96,8 @@ class Cli(object):
         try:
             func(*cmd[1:])
         except TypeError as e:
-            print('\x1b[31m', e, '\x1b[0m')
-            return
+            self._err(str(e))
+            logger.exception('Error while running command %s', cmd)
 
     def read_loop(self):
         if self.history_file and os.path.isfile(self.history_file):
@@ -105,6 +108,20 @@ class Cli(object):
                 self.prompt()
             except KeyboardInterrupt:
                 print('')
+            except Exception as e:
+                self._err(str(e))
+                logger.exception('Unexpected error')
+
+
+def configure_debug_logging():
+    logging.basicConfig(
+        filename='/tmp/s3_browser.log',
+        format='%(asctime)s %(levelname)s %(module)s:%(funcName)s %(message)s',
+        level=logging.INFO
+    )
+
+    logging.getLogger('s3_browser').setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
 
 
 def main():
@@ -120,8 +137,16 @@ def main():
         '--history', dest='history_file', type=str,
         default='{}/.s3_browser_history'.format(os.environ.get('HOME', '/etc'))
     )
+    parser.add_argument(
+        '--debug', dest='debug', action='store_true', default=False,
+        help='Turn on debug mode, logging information to /tmp/s3_browser.log'
+    )
     parser.add_argument('working_dir', nargs='?', type=str, default='/')
     args = parser.parse_args()
+
+    if args.debug:
+        configure_debug_logging()
+        logger.info('Starting s3 browser in debug mode')
 
     Cli(
         working_dir=args.working_dir,

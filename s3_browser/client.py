@@ -1,6 +1,9 @@
 import boto3
+import logging
 
 from s3_browser import paths
+
+logger = logging.getLogger(__name__)
 
 
 class S3Client(object):
@@ -13,22 +16,21 @@ class S3Client(object):
         self.boto = boto3.client('s3')
         self.path_cache = {}
 
-    # FIXME: rm
-    def _debug(self, msg):
-        with open('/tmp/s3-client-debug.log', 'a') as f:
-            f.write(msg + '\n')
-
     def ls(self, path, path_fragment=False):
         """
         Lists files directly under the given s3 path
 
         :type path: s3_browser.paths.S3Path
         """
-        self._debug('ls called: {}, {}'.format(path, path_fragment))
+        logger.debug('ls called: %s, %s', path, path_fragment)
         cache_key = (str(path), path_fragment)
         cached = self.path_cache.get(cache_key)
+
         if cached is not None:
+            logger.debug('cache hit')
             return cached
+
+        logger.debug('cache miss')
 
         def _fetch():
             if not path.bucket:
@@ -45,10 +47,9 @@ class S3Client(object):
             last_slash = search_path.rfind('/')
             search_len = last_slash + 1 if last_slash != -1 else 0
 
-            self._debug(
-                'Listing objects. full path: "{}", search_path: "{}"'.format(
-                    path, search_path
-                )
+            logger.debug(
+                'Listing objects. full path: "%s", search_path: "%s"',
+                path, search_path
             )
             # TODO: [ab]use pagination (see boto/boto3#134)
             res = self.boto.list_objects(
@@ -66,8 +67,9 @@ class S3Client(object):
                 for r in res.get('Contents', [])
                 if r['Key'] != search_path
             ]
-            self._debug(
-                'Results: {} -- {}'.format(prefixes, keys)
+            logger.debug(
+                'results: prefixes: %s -- keys: %s',
+                [str(p) for p in prefixes], [str(k) for k in keys]
             )
             return prefixes + keys
 
