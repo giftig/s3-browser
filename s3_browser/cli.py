@@ -11,7 +11,7 @@ from s3_browser import paths
 
 
 class Cli(object):
-    DEFAULT_PS1 = 's3://\x1b[36m{path_short}\x1b[0m> '
+    DEFAULT_PS1 = 's3://\001\x1b[36m\002{path_short}\001\x1b[0m\002> '
 
     def __init__(self, working_dir=None, ps1=None, history_file=None):
         self.history_file = history_file

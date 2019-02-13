@@ -1,5 +1,7 @@
 import boto3
 
+from s3_browser import paths
+
 
 class S3Client(object):
     """
@@ -56,11 +58,12 @@ class S3Client(object):
             )
             # TODO: Mark prefixes vs keys, and store modified date with key
             prefixes = [
-                r['Prefix'][search_len:]
+                paths.S3Prefix(r['Prefix'][search_len:])
                 for r in res.get('CommonPrefixes', [])
             ]
             keys = [
-                r['Key'][search_len:] for r in res.get('Contents', [])
+                paths.S3Key(r['Key'][search_len:])
+                for r in res.get('Contents', [])
                 if r['Key'] != search_path
             ]
             self._debug(
