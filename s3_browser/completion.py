@@ -8,7 +8,10 @@ class CliCompleter(object):
     EXPECTS_PATH = ['cd', 'ls', 'll']
 
     def __init__(self, cli):
-        self.commands = ['cd', 'clear', 'exit', 'ls', 'pwd']
+        self.commands = [
+            'cd', 'clear', 'exit', 'help', 'll', 'ls', 'prompt', 'pwd',
+            'refresh'
+        ]
         self.cli = cli
         self.s3_client = self.cli.client
 

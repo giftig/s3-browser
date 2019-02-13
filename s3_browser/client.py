@@ -16,6 +16,11 @@ class S3Client(object):
         self.boto = boto3.client('s3')
         self.path_cache = {}
 
+    def clear_cache(self):
+        size = len(self.path_cache)
+        self.path_cache = {}
+        return size
+
     def ls(self, path, path_fragment=False):
         """
         Lists files directly under the given s3 path

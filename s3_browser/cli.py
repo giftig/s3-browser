@@ -91,6 +91,7 @@ class Cli(object):
             ls [path]       List the contents of an s3 "directory"
             prompt [str]    Override the current prompt string
             pwd             Print the current working directory
+            refresh         Clear the ls cache
 
             Tab completion is available on cd, ls, and ll.
 
@@ -110,6 +111,10 @@ class Cli(object):
 
         sys.exit(0)
 
+    def clear_cache(self):
+        size = self.client.clear_cache()
+        print('Cleared {} cached paths.'.format(size))
+
     def prompt(self):
         cmd = input(self._render_prompt()).split()
         if not cmd:
@@ -126,7 +131,8 @@ class Cli(object):
             'll': _ll,
             'ls': self.ls,
             'prompt': self.override_prompt,
-            'pwd': lambda: print('s3://{}'.format(self.current_path))
+            'pwd': lambda: print('s3://{}'.format(self.current_path)),
+            'refresh': self.clear_cache
         }.get(cmd[0])
 
         if not func:
