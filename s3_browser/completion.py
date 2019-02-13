@@ -5,6 +5,8 @@ class CliCompleter(object):
     """
     Tab-complete functionality for the cli
     """
+    EXPECTS_PATH = ['cd', 'ls', 'll']
+
     def __init__(self, cli):
         self.commands = ['cd', 'clear', 'exit', 'ls', 'pwd']
         self.cli = cli
@@ -28,7 +30,7 @@ class CliCompleter(object):
 
         words = buf.split(' ')
         cmd = words[0]
-        if cmd in ['cd', 'ls']:
+        if cmd in self.EXPECTS_PATH:
             args = buf[len(cmd) + 1:]
             return self.complete_path(args, state)
 

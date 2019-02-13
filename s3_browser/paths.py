@@ -38,6 +38,28 @@ class S3Path(object):
         return '{}/{}'.format(self.bucket or '', self.path or '')
 
 
+class S3Bucket(object):
+    """
+    Simple representation of a bucket
+
+    Primarily just to match the S3Prefix and S3Key API
+    """
+    def __init__(self, bucket):
+        self.bucket = bucket
+
+    @property
+    def full_details(self):
+        """
+        Just the bucket name, and mention that it's a bucket
+
+        Designed to line up with S3Key's implementation of the same method
+        """
+        return '{: >19} {}'.format('BUCKET', self.bucket)
+
+    def __str__(self):
+        return self.bucket
+
+
 class S3Prefix(object):
     """
     Simple representation of an S3 prefix and associated metadata
@@ -55,6 +77,15 @@ class S3Prefix(object):
     def is_key(self):
         return False
 
+    @property
+    def full_details(self):
+        """
+        Just the prefix content, and mention that it's a prefix
+
+        Designed to line up with S3Key's implementation of the same method
+        """
+        return '{: >19} {}'.format('PREFIX', self.prefix)
+
     def __str__(self):
         return self.prefix
 
@@ -69,13 +100,22 @@ class S3Key(object):
     """
     def __init__(self, key, updated_on=None):
         self.key = key
-        self.updated_on = updated_on
+        self.updated_on = (
+            updated_on.strftime('%Y-%m-%d %H:%M:%S') if updated_on else None
+        )
 
     def is_prefix(self):
         return False
 
     def is_key(self):
         return True
+
+    @property
+    def full_details(self):
+        return '{updated_on: >19} {key}'.format(
+            updated_on=self.updated_on,
+            key=self.key
+        )
 
     def __str__(self):
         return self.key

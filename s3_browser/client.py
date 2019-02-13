@@ -33,7 +33,7 @@ class S3Client(object):
         def _fetch():
             if not path.bucket:
                 return [
-                    b['Name']
+                    paths.S3Bucket(b['Name'])
                     for b in self.boto.list_buckets().get('Buckets', [])
                 ]
 
@@ -62,7 +62,7 @@ class S3Client(object):
                 for r in res.get('CommonPrefixes', [])
             ]
             keys = [
-                paths.S3Key(r['Key'][search_len:])
+                paths.S3Key(r['Key'][search_len:], r['LastModified'])
                 for r in res.get('Contents', [])
                 if r['Key'] != search_path
             ]

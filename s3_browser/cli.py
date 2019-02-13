@@ -46,9 +46,12 @@ class Cli(object):
         self._err('cannot access \'{}\': no such s3 directory'.format(path))
         return False
 
-    def ls(self, path=''):
+    def ls(self, path='', full_details=False):
         # TODO: Add some presentation + an ll equivalent
         for p in self.client.ls(self.normalise_path(path)):
+            if full_details:
+                p = p.full_details
+
             print(p)
 
     def _render_prompt(self):
@@ -71,10 +74,14 @@ class Cli(object):
         if not cmd:
             return
 
+        def _ll(path=''):
+            return self.ls(path, full_details=True)
+
         func = {
             'cd': self.cd,
             'clear': lambda: os.system('clear'),
             'exit': self.exit,
+            'll': _ll,
             'ls': self.ls,
             'pwd': lambda: print('s3://{}'.format(self.current_path))
         }.get(cmd[0])
