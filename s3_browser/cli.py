@@ -10,6 +10,7 @@ import textwrap
 from s3_browser import client
 from s3_browser import completion
 from s3_browser import paths
+from s3_browser import utils
 
 logger = logging.getLogger(__name__)
 
@@ -61,12 +62,11 @@ class Cli(object):
         return False
 
     def ls(self, path='', full_details=False):
-        # TODO: Add some presentation + an ll equivalent
-        for p in self.client.ls(self.normalise_path(path)):
-            if full_details:
-                p = p.full_details
-
-            print(p)
+        results = [
+            str(p) if not full_details else p.full_details
+            for p in self.client.ls(self.normalise_path(path))
+        ]
+        utils.print_grid(results)
 
     def _render_prompt(self):
         return self.ps1.format(
