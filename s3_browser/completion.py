@@ -21,7 +21,7 @@ class CliCompleter(object):
                 self.cli.normalise_path(text),
                 path_fragment=not text.endswith('/')
             )
-            if r.is_prefix()
+            if r.is_prefix() or r.is_bucket()
         ]
         return str(res[state]) if state < len(res) else None
 
@@ -40,5 +40,6 @@ class CliCompleter(object):
         return None
 
     def bind(self):
+        readline.set_completer_delims(' \t\n/;')
         readline.parse_and_bind('tab: complete')
         readline.set_completer(self.complete)

@@ -38,11 +38,18 @@ class S3Client(object):
         logger.debug('cache miss')
 
         def _fetch():
-            if not path.bucket:
-                return [
+            if not path.bucket or not path.path and path_fragment:
+                logger.debug('Listing buckets')
+                res = [
                     paths.S3Bucket(b['Name'])
                     for b in self.boto.list_buckets().get('Buckets', [])
                 ]
+                if path.bucket:
+                    logger.debug('Trimming bucket list: "%s"', path.bucket)
+                    res = [r for r in res if r.bucket.startswith(path.bucket)]
+
+                logger.debug('Found buckets: %s', [str(r) for r in res])
+                return res
 
             if not path_fragment:
                 search_path = path.path + '/' if path.path else ''

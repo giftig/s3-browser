@@ -47,6 +47,15 @@ class S3Bucket(object):
     def __init__(self, bucket):
         self.bucket = bucket
 
+    def is_prefix(self):
+        return False
+
+    def is_key(self):
+        return False
+
+    def is_bucket(self):
+        return True
+
     @property
     def full_details(self):
         """
@@ -75,6 +84,9 @@ class S3Prefix(object):
         return True
 
     def is_key(self):
+        return False
+
+    def is_bucket(self):
         return False
 
     @property
@@ -109,6 +121,9 @@ class S3Key(object):
 
     def is_key(self):
         return True
+
+    def is_bucket(self):
+        return False
 
     @property
     def full_details(self):
