@@ -88,12 +88,19 @@ class Cli(object):
         name = bookmarks.BookmarkManager.clean_key(name)
         if not name:
             self._err('{} is an invalid name for a bookmark'.format(name))
-            return False
+            return
 
         path = self.normalise_path(path)
 
+        if not self.client.is_path(path):
+            self._err(
+                'cannot bookmark \'{}\': not an s3 directory'.format(path)
+            )
+            return
+
         if not self.bookmarks.add_bookmark(name, path):
             self._err('Failed to add bookmark')
+            return
 
     def remove_bookmark(self, name):
         if not self.bookmarks.remove_bookmark(name):
