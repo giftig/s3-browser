@@ -9,8 +9,8 @@ class CliCompleter(object):
 
     def __init__(self, cli):
         self.commands = [
-            'cd', 'clear', 'exit', 'help', 'll', 'ls', 'prompt', 'pwd',
-            'refresh'
+            'bookmarks', 'cd', 'clear', 'exit', 'help', 'll', 'ls', 'prompt',
+            'pwd', 'refresh'
         ]
         self.cli = cli
         self.s3_client = self.cli.client
@@ -24,6 +24,10 @@ class CliCompleter(object):
             if r.is_prefix() or r.is_bucket()
         ]
         return str(res[state]) if state < len(res) else None
+
+    def complete_bookmark(self, text, state):
+        # TODO: Autocomplete $ or ${}
+        return None
 
     def complete(self, text, state):
         buf = readline.get_line_buffer()

@@ -7,6 +7,7 @@ import readline
 import sys
 import textwrap
 
+from s3_browser import bookmarks
 from s3_browser import client
 from s3_browser import completion
 from s3_browser import paths
@@ -28,12 +29,23 @@ class Cli(object):
         """
     )
 
-    def __init__(self, working_dir=None, ps1=None, history_file=None):
+    def __init__(
+        self,
+        working_dir=None,
+        ps1=None,
+        history_file=None,
+        bookmark_file=None
+    ):
         self.history_file = history_file
         self.ps1 = ps1 or Cli.DEFAULT_PS1
         self.current_path = paths.S3Path.from_path(working_dir or '/')
 
         self.client = client.S3Client()
+
+        if bookmark_file:
+            self.bookmarks = bookmarks.BookmarkManager(bookmark_file)
+        else:
+            self.bookmarks = None
 
         self.completion = completion.CliCompleter(self)
         self.completion.bind()
@@ -41,7 +53,7 @@ class Cli(object):
     @staticmethod
     def _err(msg):
         """Print a message in red"""
-        print('\x1b[31m', msg, '\x1b[0m', file=sys.stderr)
+        print('\x1b[31m{}\x1b[0m'.format(msg), file=sys.stderr)
 
     def normalise_path(self, path):
         # Special case: ~ refers to the root of the current bucket
@@ -68,6 +80,60 @@ class Cli(object):
         ]
         utils.print_grid(results)
 
+    def add_bookmark(self, name, path):
+        name = bookmarks.BookmarkManager.clean_key(name)
+        if not name:
+            self._err('{} is an invalid name for a bookmark'.format(name))
+            return False
+
+        path = self.normalise_path(path)
+
+        if not self.bookmarks.add_bookmark(name, path):
+            self._err('Failed to add bookmark')
+
+    def remove_bookmark(self, name):
+        if not self.bookmarks.remove_bookmark(name):
+            self._err('{} is not the name of a bookmark'.format(name))
+            return False
+
+        return True
+
+    def list_bookmarks(self):
+        for k, v in self.bookmarks.bookmarks.items():
+            print('\x1b[33m${: <18}\x1b[0m {}'.format(k, str(v)))
+
+    def bookmark_help(self):
+        print(textwrap.dedent(
+            """
+            Add, remove, or list bookmarks.
+
+            add NAME PATH   Add a bookmark called NAME pointing at PATH
+            rm NAME         Remove the named bookmark
+            list, ls        List all bookmarks
+            """
+        ))
+
+    def bookmark(self, op, *args):
+        if not self.bookmarks:
+            self._err('Bookmarks are unavailable')
+            return
+
+        f = {
+            'add': self.add_bookmark,
+            'ls': self.list_bookmarks,
+            'list': self.list_bookmarks,
+            'help': self.bookmark_help,
+            'rm': self.remove_bookmark
+        }.get(op)
+
+        if not f:
+            self._err(
+                'Bad operation \'{}\'. Try help for correct usage'.format(op)
+            )
+            return
+
+        return f(*args)
+
     def _render_prompt(self):
         return self.ps1.format(
             path=self.current_path,
@@ -85,6 +151,8 @@ class Cli(object):
             help            Print this help message
             exit            Bye!
 
+            bookmark        Add, remove, or list bookmarks.
+                            Use 'bookmark help' for more details.
             cd [path]       Change directory
             clear           Clear the screen
             ll [path]       Like ls, but show modified times and object types
@@ -125,6 +193,7 @@ class Cli(object):
 
         func = {
             'cd': self.cd,
+            'bookmark': self.bookmark,
             'clear': lambda: os.system('clear'),
             'exit': self.exit,
             'help': self.help,
@@ -182,6 +251,12 @@ def main():
         )
     )
     parser.add_argument(
+        '--bookmarks', dest='bookmark_file', type=str,
+        default='{}/.s3_browser_bookmarks'.format(
+            os.environ.get('HOME', '/etc')
+        )
+    )
+    parser.add_argument(
         '--history', dest='history_file', type=str,
         default='{}/.s3_browser_history'.format(os.environ.get('HOME', '/etc'))
     )
@@ -201,7 +276,8 @@ def main():
     Cli(
         working_dir=args.working_dir,
         ps1=args.prompt,
-        history_file=args.history_file
+        history_file=args.history_file,
+        bookmark_file=args.bookmark_file
     ).read_loop()
 
 
