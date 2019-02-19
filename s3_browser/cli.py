@@ -56,6 +56,10 @@ class Cli(object):
         print('\x1b[31m{}\x1b[0m'.format(msg), file=sys.stderr)
 
     def normalise_path(self, path):
+        # Strip off the protocol prefix if provided
+        if path.startswith('s3://'):
+            path = path[5:]
+
         # Special case: ~ refers to the root of the current bucket
         if path == '~' or path == '~/':
             return paths.S3Path(bucket=self.current_path.bucket, path=None)
