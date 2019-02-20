@@ -78,10 +78,22 @@ class Cli(object):
         return False
 
     def ls(self, path='', full_details=False):
+        bookmarked = {str(v): k for k, v in self.bookmarks.bookmarks.items()}
+        results = self.client.ls(self.normalise_path(path))
+
+        # Annotate any present bookmarks so that we can see them in the display
+        # We need to do some juggling of the values to do that as we have
+        # absolute buckets, prefixes relative to the pwd, etc.
+        if full_details:
+            for r in results:
+                b = bookmarked.get(str(self.normalise_path(r.path_string)))
+                r.bookmark = b
+
         results = [
-            str(p) if not full_details else p.full_details
-            for p in self.client.ls(self.normalise_path(path))
+            str(r) if not full_details else r.full_details
+            for r in results
         ]
+
         utils.print_grid(results)
 
     def add_bookmark(self, name, path):

@@ -1,6 +1,16 @@
 import os
 
 
+def _annotate_bookmark(label, bookmark=None):
+    """
+    Annotate a bookmark indicator onto the type indicator of a bucket or prefix
+    """
+    if not bookmark:
+        return label
+
+    return '\x1b[33m${}\x1b[0m {}'.format(bookmark, label)
+
+
 class S3Path(object):
     """
     Represents a combination of bucket and absolute path within that bucket.
@@ -46,6 +56,7 @@ class S3Bucket(object):
     """
     def __init__(self, bucket):
         self.bucket = bucket
+        self.bookmark = None
 
     def is_prefix(self):
         return False
@@ -63,7 +74,15 @@ class S3Bucket(object):
 
         Designed to line up with S3Key's implementation of the same method
         """
-        return '{: >19} {}'.format('BUCKET', self.bucket)
+        label = _annotate_bookmark('BUCKET', self.bookmark)
+        return '{: >19} {}'.format(label, self.bucket)
+
+    @property
+    def path_string(self):
+        """
+        Prefix the bucket value with / to indicate it's absolute (top-level)
+        """
+        return '/' + self.bucket
 
     def __str__(self):
         return self.bucket
@@ -79,6 +98,7 @@ class S3Prefix(object):
     """
     def __init__(self, prefix):
         self.prefix = prefix
+        self.bookmark = None
 
     def is_prefix(self):
         return True
@@ -96,7 +116,15 @@ class S3Prefix(object):
 
         Designed to line up with S3Key's implementation of the same method
         """
-        return '{: >19} {}'.format('PREFIX', self.prefix)
+        label = _annotate_bookmark('PREFIX', self.bookmark)
+        return '{: >19} {}'.format(label, self.prefix)
+
+    @property
+    def path_string(self):
+        """
+        Since this represents a prefix, just provide the relative prefix
+        """
+        return self.prefix
 
     def __str__(self):
         return self.prefix
@@ -131,6 +159,13 @@ class S3Key(object):
             updated_on=self.updated_on,
             key=self.key
         )
+
+    @property
+    def path_string(self):
+        """
+        For files, the path is just expressed as the key fragment
+        """
+        return self.key
 
     def __str__(self):
         return self.key
