@@ -106,7 +106,7 @@ class BookmarkManager(object):
 
 
 class Bookmark(object):
-    def __init__(self, path, created_on=None):
+    def __init__(self, path, created_on=None, *args, **kwargs):
         self.path = path
 
         if created_on is not None:

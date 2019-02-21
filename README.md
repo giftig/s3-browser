@@ -12,3 +12,15 @@ Written in python.
 ## Installation
 
 `pip install s3_browser`
+
+## Development
+
+### Running tests
+
+Just install the test requirements into your virtualenv:
+
+```bash
+pip install -r requirements_test.txt
+```
+
+and then run `nosetests`.
