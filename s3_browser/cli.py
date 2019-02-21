@@ -11,6 +11,7 @@ from s3_browser import bookmarks
 from s3_browser import client
 from s3_browser import completion
 from s3_browser import paths
+from s3_browser import tokeniser
 from s3_browser import utils
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,13 @@ class Cli(object):
         print('\x1b[31m{}\x1b[0m'.format(msg), file=sys.stderr)
 
     def normalise_path(self, path):
+        # Render variables present in the path
+        context = (
+            {} if not self.bookmarks else
+            {k: v.path for k, v in self.bookmarks.bookmarks.items()}
+        )
+        path = tokeniser.render(tokeniser.tokenise(path), context)
+
         # Strip off the protocol prefix if provided
         if path.startswith('s3://'):
             path = path[5:]

@@ -45,7 +45,7 @@ class S3Path(object):
         if not self.bucket:
             return '/'
 
-        return '{}/{}'.format(self.bucket or '', self.path or '')
+        return '/{}/{}'.format(self.bucket, self.path or '')
 
 
 class S3Bucket(object):
