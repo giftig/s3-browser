@@ -30,6 +30,11 @@ class Cli(object):
         """
     )
 
+    RECOGNISED_COMMANDS = [
+        'bookmark', 'cd', 'clear', 'exit', 'file', 'head', 'help', 'll',
+        'ls', 'prompt', 'pwd', 'refresh'
+    ]
+
     def __init__(
         self,
         working_dir=None,

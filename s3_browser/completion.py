@@ -9,10 +9,6 @@ class CliCompleter(object):
     EXPECTS_PATH = {'cd', 'ls', 'll'}.union(EXPECTS_KEY)
 
     def __init__(self, cli):
-        self.commands = [
-            'bookmarks', 'cd', 'clear', 'exit', 'file', 'head', 'help', 'll',
-            'ls', 'prompt', 'pwd', 'refresh'
-        ]
         self.cli = cli
         self.s3_client = self.cli.client
 
@@ -34,7 +30,9 @@ class CliCompleter(object):
         buf = readline.get_line_buffer()
 
         if ' ' not in buf:
-            matches = [c for c in self.commands if c.startswith(buf)]
+            matches = [
+                c for c in self.cli.RECOGNISED_COMMANDS if c.startswith(buf)
+            ]
             if state < len(matches):
                 return matches[state]
 

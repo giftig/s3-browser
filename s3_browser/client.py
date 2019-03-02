@@ -69,7 +69,6 @@ class S3Client(object):
                 Prefix=search_path,
                 Delimiter='/'
             )
-            # TODO: Mark prefixes vs keys, and store modified date with key
             prefixes = [
                 paths.S3Prefix(r['Prefix'][search_len:])
                 for r in res.get('CommonPrefixes', [])

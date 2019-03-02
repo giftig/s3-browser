@@ -58,6 +58,7 @@ def print_dict(data, indent_level=0):
             print(_format_key(k))
             print_dict(v, indent_level=indent_level + 1)
 
+
 def _pretty_size(n):
     """Convert a size in bytes to a human-readable string"""
     if not n:

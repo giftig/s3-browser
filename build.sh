@@ -10,7 +10,7 @@ RESET=$(tput sgr0)
 EXIT_CODE=0
 
 _flake8() {
-  flake8 .
+  flake8 s3_browser setup.py
   if [[ "$?" != 0 ]]; then
     EXIT_CODE="$?"
   else
