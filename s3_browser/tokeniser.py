@@ -83,7 +83,7 @@ def render(tokens, context):
             acc += v
             continue
 
-        if not t.name in context:
+        if t.name not in context:
             raise TokeniserException('Unknown token \'{}\''.format(t.name))
 
         acc += context[t.name]

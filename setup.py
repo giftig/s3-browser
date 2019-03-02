@@ -11,6 +11,7 @@ def readme_content():
 
     return desc
 
+
 setup(
     name='s3_browser',
     version='0.2.0',
