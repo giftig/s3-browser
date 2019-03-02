@@ -165,6 +165,19 @@ class Cli(object):
 
         return f(*args)
 
+    def print_head_data(self, key):
+        """
+        Print key size and other extended metadata about a key in a nice
+        readable format
+        """
+        key = self.normalise_path(key)
+        data = self.client.head(key)
+        data = utils.strip_s3_metadata(data)
+
+        print('\x1b[33m{}\x1b[0m'.format(key.canonical))
+        print()
+        utils.print_dict(data)
+
     def _render_prompt(self):
         return self.ps1.format(
             path=self.current_path,
@@ -186,6 +199,8 @@ class Cli(object):
                             Use 'bookmark help' for more details.
             cd [path]       Change directory
             clear           Clear the screen
+            file [key]      Show extended metadata about a given key
+            head [key]      Alias for file
             ll [path]       Like ls, but show modified times and object types
             ls [path]       List the contents of an s3 "directory"
             prompt [str]    Override the current prompt string
@@ -227,11 +242,15 @@ class Cli(object):
             'bookmark': self.bookmark,
             'clear': lambda: os.system('clear'),
             'exit': self.exit,
+            'file': self.print_head_data,
+            'head': self.print_head_data,
             'help': self.help,
             'll': _ll,
             'ls': self.ls,
             'prompt': self.override_prompt,
-            'pwd': lambda: print('s3://{}'.format(self.current_path)),
+            'pwd': lambda: print(
+                's3://{}'.format(self.current_path.canonical)
+            ),
             'refresh': self.clear_cache
         }.get(cmd[0])
 

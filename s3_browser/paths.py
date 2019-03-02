@@ -41,6 +41,11 @@ class S3Path(object):
 
         return str(self)
 
+    @property
+    def canonical(self):
+        """Full path as accepted by the cli, with s3:// protocol specified"""
+        return 's3://{}/{}'.format(self.bucket, self.path or '')
+
     def __str__(self):
         if not self.bucket:
             return '/'

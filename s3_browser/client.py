@@ -91,5 +91,17 @@ class S3Client(object):
 
         return res
 
+    def head(self, path):
+        """Get head metadata for a path"""
+        res = None
+        if not path.path:
+            res = self.boto.head_bucket(Bucket=path.bucket)
+        else:
+            res = self.boto.head_object(Bucket=path.bucket, Key=path.path)
+
+        logger.debug('Head %s: response = %s', path, res)
+        return res
+
     def is_path(self, path):
+        # TODO: Do this with head_object instead?
         return bool(self.ls(path))
