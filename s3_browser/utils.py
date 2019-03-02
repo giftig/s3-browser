@@ -58,14 +58,36 @@ def print_dict(data, indent_level=0):
             print(_format_key(k))
             print_dict(v, indent_level=indent_level + 1)
 
+def _pretty_size(n):
+    """Convert a size in bytes to a human-readable string"""
+    if not n:
+        return None
+
+    size = int(n)
+    shortened = None
+
+    for suffix in ('B', 'KB', 'MB', 'GB', 'TB'):
+        if size < 1024:
+            shortened = '{} {}'.format(round(size), suffix)
+            break
+
+        size /= 1024
+
+    return shortened
+
 
 def strip_s3_metadata(data):
     """Strip s3 metadata down to the useful stuff"""
     metadata = data.get('Metadata', {})
     http_head = data.get('ResponseMetadata', {}).get('HTTPHeaders', {})
 
+    content_length = http_head.get('content-length')
+    pretty_len = _pretty_size(content_length)
+    if pretty_len:
+        content_length = '{} ({} bytes)'.format(pretty_len, content_length)
+
     return {
-        'Content-Length': http_head.get('content-length'),
+        'Content-Length': content_length,
         'Content-Type': http_head.get('content-type'),
         'Last-Modified': http_head.get('last-modified'),
         'Metadata': metadata
