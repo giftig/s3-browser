@@ -253,9 +253,7 @@ class Cli(object):
             'll': _ll,
             'ls': self.ls,
             'prompt': self.override_prompt,
-            'pwd': lambda: print(
-                's3://{}'.format(self.current_path.canonical)
-            ),
+            'pwd': lambda: print(self.current_path.canonical),
             'refresh': self.clear_cache
         }.get(cmd[0])
 
