@@ -16,6 +16,8 @@ Written in python.
 
 `pip install s3_browser`
 
+And then run with `s3-browser`.
+
 ## Development
 
 ### Running tests
