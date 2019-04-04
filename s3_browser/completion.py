@@ -18,7 +18,7 @@ class CliCompleter(object):
                 self.cli.normalise_path(text),
                 path_fragment=not text.endswith('/')
             )
-            if allow_keys or r.is_prefix() or r.is_bucket()
+            if allow_keys or not r.is_key
         ]
         return str(res[state]) if state < len(res) else None
 

@@ -72,15 +72,7 @@ class S3Bucket(object):
     def __init__(self, bucket):
         self.bucket = bucket
         self.bookmark = None
-
-    def is_prefix(self):
-        return False
-
-    def is_key(self):
-        return False
-
-    def is_bucket(self):
-        return True
+        self.is_key = False
 
     @property
     def full_details(self):
@@ -114,15 +106,7 @@ class S3Prefix(object):
     def __init__(self, prefix):
         self.prefix = prefix
         self.bookmark = None
-
-    def is_prefix(self):
-        return True
-
-    def is_key(self):
-        return False
-
-    def is_bucket(self):
-        return False
+        self.is_key = False
 
     @property
     def full_details(self):
@@ -158,20 +142,12 @@ class S3Key(object):
         self.updated_on = (
             updated_on.strftime('%Y-%m-%d %H:%M:%S') if updated_on else None
         )
-
-    def is_prefix(self):
-        return False
-
-    def is_key(self):
-        return True
-
-    def is_bucket(self):
-        return False
+        self.is_key = True
 
     @property
     def full_details(self):
         return '{updated_on: >19} {key}'.format(
-            updated_on=self.updated_on,
+            updated_on=self.updated_on or '',
             key=self.key
         )
 
