@@ -24,7 +24,11 @@ class S3Path(object):
 
     @staticmethod
     def from_path(path):
-        stripped = path.strip('/')
+        stripped = path
+        if stripped.startswith('s3://'):
+            stripped = path[5:]
+
+        stripped = stripped.strip('/')
         if not stripped:
             return S3Path(None, None)
 
@@ -39,7 +43,7 @@ class S3Path(object):
         if self.path and '/' in self.path:
             return '{}/…/{}'.format(self.bucket, self.name)
 
-        return str(self)
+        return '{}/{}'.format(self.bucket, self.path or '')
 
     @property
     def canonical(self):
@@ -48,6 +52,9 @@ class S3Path(object):
             return 's3://'
 
         return 's3://{}/{}'.format(self.bucket, self.path or '')
+
+    def __eq__(self, other):
+        return self.canonical == other.canonical
 
     def __str__(self):
         if not self.bucket:
