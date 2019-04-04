@@ -48,7 +48,7 @@ class BookmarksTest(unittest.TestCase):
         data = data or self.data
 
         with open(f, 'w') as ff:
-            json.dump(self.data, ff)
+            json.dump(data, ff)
 
     def test_read_bookmarks_file(self):
         """Should be able to parse the bookmark format"""
@@ -102,10 +102,16 @@ class BookmarksTest(unittest.TestCase):
         self.assertEqual(actual, self.expected_bookmarks)
 
         for b in self.data['bookmarks'].keys():
-            manager.remove_bookmark(b)
+            self.assertTrue(manager.remove_bookmark(b))
 
         actual = self.normalise_bookmarks(manager.bookmarks)
         self.assertEqual(actual, {})
+
+    def test_remove_missing_bookmark(self):
+        f = self.gen_filename()
+        man = bookmarks.BookmarkManager(f)
+        man.add_bookmark('awesome_bookmark', 'amazing/path')
+        self.assertFalse(man.remove_bookmark('lame_bookmark'))
 
     def test_save_bookmarks(self):
         f = self.gen_filename()
@@ -128,3 +134,43 @@ class BookmarksTest(unittest.TestCase):
         # Now reload from disk and check it's the same as we just saved
         man2.load()
         self.assertEqual(self.normalise_bookmarks(man2.bookmarks), expected)
+
+    def test_validate_bookmark_key(self):
+        """Key names should be checked against a pattern"""
+        valid_names = ['hodor', 'ostrich', 'potato123']
+        invalid_names = ['thisnameisabittoolong', 'funny/characters']
+
+        for n in valid_names:
+            self.assertEqual(bookmarks.BookmarkManager.clean_key(n), n)
+
+        for n in invalid_names:
+            self.assertIsNone(bookmarks.BookmarkManager.clean_key(n))
+
+    def test_unreadable_bookmark_file(self):
+        """If the bookmark file is unreadable, load no bookmarks"""
+        f = self.gen_filename()
+        self.write_fixture(f)
+        os.chmod(f, 0o200)  # TODO: Cross-platform solution?
+
+        man = bookmarks.BookmarkManager(f)
+        self.assertIsNone(man.bookmarks)
+        self.assertFalse(man.add_bookmark('nope', 'nope/nope/nope'))
+
+    def test_malformed_bookmark_file(self):
+        """If the JSON is malformed, refuse to support bookmarks"""
+        f = self.gen_filename()
+        with open(f, 'w') as ff:
+            ff.write('bad json')
+
+        man = bookmarks.BookmarkManager(f)
+        self.assertIsNone(man.bookmarks)
+        self.assertFalse(man.add_bookmark('nope', 'nope/nope/nope'))
+
+    def test_bad_bookmark_file_data(self):
+        """If the JSON has a bad structure, refuse to support bookmarks"""
+        f = self.gen_filename()
+        self.write_fixture(f, {'bookmarks': 'should be an object!'})
+
+        man = bookmarks.BookmarkManager(f)
+        self.assertIsNone(man.bookmarks)
+        self.assertFalse(man.add_bookmark('nope', 'nope/nope/nope'))

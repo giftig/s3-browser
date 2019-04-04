@@ -87,10 +87,11 @@ class BookmarkManager(object):
             logger.exception('Error reading bookmark file %s', ff)
         except ValueError:
             logger.exception('Error reading contents of bookmark file %s', ff)
-        except KeyError:
-            logger.exception('Error with bookmark file format', ff)
+        except AttributeError:
+            logger.exception('Error with bookmark file format (%s)', ff)
+        else:
+            logger.debug('Successfully read %d bookmarks', len(data))
 
-        logger.debug('Successfully read %d bookmarks', len(data))
         self._bookmarks = data
         return data is not None
 
