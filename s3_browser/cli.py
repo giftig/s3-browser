@@ -24,7 +24,7 @@ class Cli(object):
         Welcome to the interactive AWS S3 navigator.
         Written by Giftiger Wunsch.
 
-        \x1b[36mContribute: https://www.github.com/giftig/s3_browser/\x1b[0m
+        \x1b[36mContribute: https://www.github.com/giftig/s3-browser/\x1b[0m
 
         Type 'help' for help.
         """
