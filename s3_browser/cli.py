@@ -22,7 +22,7 @@ class Cli(object):
     SPLASH = textwrap.dedent(
         """
         Welcome to the interactive AWS S3 navigator.
-        Written by Giftiger Wunsch.
+        Written by Rob Moore.
 
         \x1b[36mContribute: https://www.github.com/giftig/s3-browser/\x1b[0m
 
