@@ -6,6 +6,7 @@ import os
 import readline
 import sys
 import textwrap
+import shlex
 
 from s3_browser import bookmarks
 from s3_browser import client
@@ -235,7 +236,7 @@ class Cli(object):
         print('Cleared {} cached paths.'.format(size))
 
     def prompt(self):
-        cmd = input(self._render_prompt()).split()
+        cmd = shlex.split(input(self._render_prompt()))
         if not cmd:
             return
 
