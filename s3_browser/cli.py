@@ -4,6 +4,7 @@ import argparse
 import logging
 import os
 import readline
+import shlex
 import sys
 import textwrap
 
@@ -235,7 +236,7 @@ class Cli(object):
         print('Cleared {} cached paths.'.format(size))
 
     def prompt(self):
-        cmd = input(self._render_prompt()).split()
+        cmd = shlex.split(input(self._render_prompt()))
         if not cmd:
             return
 
