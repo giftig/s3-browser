@@ -27,12 +27,6 @@ echo -n "$RESET"
 
 echo ''
 
-nosetests \
-  --with-coverage \
-  --cover-package s3_browser \
-  --cover-inclusive \
-  --cover-html \
-  --cover-min-percentage 85 \
-  --cover-html-dir build/coverage || exit 1
+nosetests --with-coverage || exit 1
 
 exit $EXIT_CODE

@@ -1,0 +1,2 @@
+[report]
+omit = s3_browser/cli.py
