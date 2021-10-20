@@ -26,12 +26,18 @@ And then run with `s3-browser`.
 
 ### Running tests
 
-Just install the test requirements into your virtualenv:
+Install the project into your virtualenv in development mode:
+
+```bash
+pip install -e .
+```
+
+Then install the test requirements:
 
 ```bash
 pip install -r requirements_test.txt
 ```
 
-and then run `./build.sh`.
+and finally run `./build.sh` to run the full build.
 
 [usage-1]: readme-resources/usage-1.png "Usage example"
