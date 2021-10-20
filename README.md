@@ -12,15 +12,15 @@ Written in python.
   * Maintains command history
   * Lazy-loading and caching of paths (no scanning entire buckets on start up)
 
-## Example usage
-
-![Usage example][usage-1]
-
 ## Installation
 
 `pip install s3_browser`
 
 And then run with `s3-browser`.
+
+## Example usage
+
+![Usage example][usage-1]
 
 ## Development
 
