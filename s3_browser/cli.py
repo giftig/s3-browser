@@ -38,6 +38,7 @@ class Cli(object):
 
     def __init__(
         self,
+        endpoint=None,
         working_dir=None,
         ps1=None,
         history_file=None,
@@ -47,7 +48,7 @@ class Cli(object):
         self.ps1 = ps1 or Cli.DEFAULT_PS1
         self.current_path = paths.S3Path.from_path(working_dir or '/')
 
-        self.client = client.S3Client()
+        self.client = client.S3Client(endpoint=endpoint)
 
         if bookmark_file:
             self.bookmarks = bookmarks.BookmarkManager(bookmark_file)
@@ -305,6 +306,14 @@ def main():
         )
     )
     parser.add_argument(
+        '-e-', '--endpoint', type=str, default=None,
+        help=(
+            'Optional endpoint URL to use if not the default Amazon S3 URL. '
+            'Hoststring like https://example.com:1234'
+        )
+    )
+
+    parser.add_argument(
         '--bookmarks', dest='bookmark_file', type=str,
         default='{}/.s3_browser_bookmarks'.format(
             os.environ.get('HOME', '/etc')
@@ -328,6 +337,7 @@ def main():
         logging.disable(logging.CRITICAL)
 
     Cli(
+        endpoint=args.endpoint,
         working_dir=args.working_dir,
         ps1=args.prompt,
         history_file=args.history_file,
