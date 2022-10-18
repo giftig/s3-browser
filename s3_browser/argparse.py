@@ -1,5 +1,6 @@
 import argparse
 
+
 class ArgumentParser(argparse.ArgumentParser):
     """
     An argument parser which doesn't terminate the application
