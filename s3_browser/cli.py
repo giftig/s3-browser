@@ -14,6 +14,7 @@ from s3_browser import completion
 from s3_browser import paths
 from s3_browser import tokeniser
 from s3_browser import utils
+from s3_browser.argparse import ArgumentParser as SafeParser
 
 logger = logging.getLogger(__name__)
 
@@ -92,24 +93,43 @@ class Cli(object):
         self._err('cannot access \'{}\': no such s3 directory'.format(path))
         return False
 
-    def ls(self, path='', full_details=False):
+    def ls(self, *args):
+        parser = SafeParser('ls')
+        parser.add_argument(
+            '-l', dest='full_details', action='store_true',
+            help='Use a long list format, including additional s3 metadata'
+        )
+        parser.add_argument(
+            '-1', dest='oneline', action='store_true',
+            help='List one result per line'
+        )
+        parser.add_argument('path', default='', nargs='?')
+        args = parser.parse_args(args)
+
+        if parser.exited:
+            return
+
         bookmarked = {str(v): k for k, v in self.bookmarks.bookmarks.items()}
-        results = self.client.ls(self.normalise_path(path))
+        results = self.client.ls(self.normalise_path(args.path))
 
         # Annotate any present bookmarks so that we can see them in the display
         # We need to do some juggling of the values to do that as we have
         # absolute buckets, prefixes relative to the pwd, etc.
-        if full_details:
+        if args.full_details:
             for r in results:
                 b = bookmarked.get(str(self.normalise_path(r.path_string)))
                 r.bookmark = b
 
         results = [
-            str(r) if not full_details else r.full_details
+            str(r) if not args.full_details else r.full_details
             for r in results
         ]
 
-        utils.print_grid(results)
+        if args.oneline:
+            for r in results:
+                print(r)
+        else:
+            utils.print_grid(results)
 
     def add_bookmark(self, name, path):
         name = bookmarks.BookmarkManager.clean_key(name)
@@ -241,8 +261,8 @@ class Cli(object):
         if not cmd:
             return
 
-        def _ll(path=''):
-            return self.ls(path, full_details=True)
+        def _ll(*args):
+            return self.ls('-1', *args)
 
         func = {
             'cd': self.cd,
