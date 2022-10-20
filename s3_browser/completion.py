@@ -12,11 +12,39 @@ class CliCompleter(object):
         self.cli = cli
         self.s3_client = self.cli.client
 
-    def complete_path(self, text, state, allow_keys=False):
+    def complete_command(self, cmd, state):
+        """
+        Complete a command if we're just starting to write a command (i.e.
+        no spaces in the command yet)
+        """
+        matches = [
+            c for c in self.cli.RECOGNISED_COMMANDS if c.startswith(cmd)
+        ]
+        if state < len(matches):
+            return matches[state]
+
+        return None
+
+    def complete_path(self, partial, state, allow_keys=False):
+        """
+        Autocomplete for an expected S3 path by looking up possible paths at
+        the current path prefix to complete with.
+
+
+        :param partial: The partial path we're trying to tab-complete (may be
+            an empty string)
+        :param state: The numerical state provided by the autocomplete system;
+            refers to the index of the results being requested in this
+            invocation.
+        :param allow_keys: If True, we'll allow completing individual keys;
+            otherwise we'll only allow completing prefixes (i.e. pseudo
+            directories). This distinguishes something you can cd into, for
+            example.
+        """
         res = [
             str(r) for r in self.s3_client.ls(
-                self.cli.normalise_path(text),
-                path_fragment=not text.endswith('/')
+                self.cli.normalise_path(partial),
+                path_fragment=not partial.endswith('/')
             )
             if allow_keys or not r.is_key
         ]
@@ -27,22 +55,26 @@ class CliCompleter(object):
         return None
 
     def complete(self, text, state):
+        """
+        Autocomplete the next word by figuring out the context of what we're
+        doing and delegating to the appropriate completion method
+        """
         buf = readline.get_line_buffer()
-
-        if ' ' not in buf:
-            matches = [
-                c for c in self.cli.RECOGNISED_COMMANDS if c.startswith(buf)
-            ]
-            if state < len(matches):
-                return matches[state]
-
-            return None
-
         words = buf.split(' ')
         cmd = words[0]
+
+        if len(words) == 1:
+            return self.complete_command(cmd, state)
+
+        # TODO: This is slightly naive as it assumes all arguments are expected
+        # to be a path if any of them are, but as it's only providing
+        # suggestions that's not a big problem
         if cmd in self.EXPECTS_PATH:
-            args = buf[len(cmd) + 1:]
-            return self.complete_path(args, state, cmd in self.EXPECTS_KEY)
+            return self.complete_path(
+                words[-1],
+                state,
+                cmd in self.EXPECTS_KEY
+            )
 
         return None
 
