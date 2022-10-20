@@ -34,7 +34,7 @@ class Cli(object):
 
     RECOGNISED_COMMANDS = [
         'bookmark', 'cat', 'cd', 'clear', 'exit', 'file', 'head', 'help', 'll',
-        'ls', 'prompt', 'pwd', 'refresh'
+        'ls', 'prompt', 'pwd', 'refresh', 'rm'
     ]
 
     def __init__(
@@ -149,6 +149,19 @@ class Cli(object):
         for s in streams:
             utils.print_stream(s)
 
+    def rm(self, *args):
+        parser = SafeParser('rm')
+        parser.add_argument('keys', nargs='+', help='S3 key(s) to delete')
+        args = parser.parse_args(args)
+
+        if parser.exited:
+            return
+
+        paths = [self.normalise_path(p) for p in args.keys]
+
+        for p in paths:
+            self.client.rm(p)
+
     def add_bookmark(self, name, path):
         name = bookmarks.BookmarkManager.clean_key(name)
         if not name:
@@ -252,8 +265,9 @@ class Cli(object):
             prompt [str]    Override the current prompt string
             pwd             Print the current working directory
             refresh         Clear the ls cache
+            rm [keys]       Delete one or more keys
 
-            Tab completion is available on cd, ls, and ll.
+            Tab completion is available for most commands.
 
             Command history is available (stored in ~/.s3_browser_history)
             """
@@ -296,7 +310,8 @@ class Cli(object):
             'ls': self.ls,
             'prompt': self.override_prompt,
             'pwd': lambda: print(self.current_path.canonical),
-            'refresh': self.clear_cache
+            'refresh': self.clear_cache,
+            'rm': self.rm
         }.get(cmd[0])
 
         if not func:
@@ -310,6 +325,7 @@ class Cli(object):
             logger.exception('Error while running command %s', cmd)
 
     def read_loop(self):
+        """The main start up + main loop of the cli"""
         if self.history_file and os.path.isfile(self.history_file):
             readline.read_history_file(self.history_file)
 

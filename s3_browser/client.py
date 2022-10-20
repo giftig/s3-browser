@@ -1,5 +1,6 @@
 import boto3
 import logging
+import os
 
 from s3_browser import paths
 
@@ -21,6 +22,41 @@ class S3Client(object):
         self.path_cache = {}
         return size
 
+    def invalidate_cache(self, path):
+        """
+        Invalidate cache entries for a particular S3Path
+
+        Because prefixes (pseudo-dirs) aren't actually "real", deleting all
+        keys under a prefix causes that prefix to also cease to exist. That
+        means we have to recursively invalidate the cache for every path
+        prefix in the key in case some of those prefixes are now empty.
+
+        i.e. for key s3://bucketname/foo/bar/baz/data.xml we'd have to refresh:
+            - s3://bucketname/foo/bar/baz/data.xml
+            - s3://bucketname/foo/bar/baz
+            - s3://bucketname/foo/bar
+            - s3://bucketname/foo
+            - s3://bucketname/
+        """
+        cache_keys = []
+        next_path = path
+
+        while True:
+            cache_keys.extend(
+                [(next_path.canonical, True), (next_path.canonical, False)]
+            )
+
+            next = os.path.dirname(next_path.path)
+            if next == next_path.path:
+                break
+
+            next_path.path = next
+
+        logger.debug('Clearing cache keys: %s', cache_keys)
+        logger.debug('Cache keys present: %s', self.path_cache.keys())
+        for k in cache_keys:
+            self.path_cache.pop(k, None)
+
     def ls(self, path, path_fragment=False):
         """
         Lists files directly under the given s3 path
@@ -28,7 +64,7 @@ class S3Client(object):
         :type path: s3_browser.paths.S3Path
         """
         logger.debug('ls called: %s, %s', path, path_fragment)
-        cache_key = (str(path), path_fragment)
+        cache_key = (path.canonical, path_fragment)
         cached = self.path_cache.get(cache_key)
 
         if cached is not None:
@@ -100,6 +136,11 @@ class S3Client(object):
 
         logger.debug('Head %s: response = %s', path, res)
         return res
+
+    def rm(self, path):
+        """Delete a key"""
+        self.boto.delete_object(Bucket=path.bucket, Key=path.path)
+        self.invalidate_cache(path)
 
     def get_object(self, path):
         """Get a full object at a path"""

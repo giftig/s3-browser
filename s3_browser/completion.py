@@ -5,7 +5,7 @@ class CliCompleter(object):
     """
     Tab-complete functionality for the cli
     """
-    EXPECTS_KEY = {'file', 'cat'}
+    EXPECTS_KEY = {'cat', 'file', 'rm'}
     EXPECTS_PATH = {'cd', 'ls', 'll'}.union(EXPECTS_KEY)
 
     def __init__(self, cli):

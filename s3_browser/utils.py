@@ -135,4 +135,4 @@ def print_object(obj):
         )
 
     with obj['Body'] as c:
-        print(c.read().decode('utf-8'))
+        print(c.read().decode('utf-8'), end='')
