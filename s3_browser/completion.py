@@ -1,12 +1,16 @@
+import logging
+import os
 import readline
+
+logger = logging.getLogger(__name__)
 
 
 class CliCompleter(object):
     """
     Tab-complete functionality for the cli
     """
-    EXPECTS_KEY = {'cat', 'file', 'rm'}
-    EXPECTS_PATH = {'cd', 'ls', 'll'}.union(EXPECTS_KEY)
+    EXPECTS_KEY = {'cat', 'file', 'head', 'rm'}
+    EXPECTS_S3_PATH = {'cd', 'ls', 'll'}.union(EXPECTS_KEY)
 
     def __init__(self, cli):
         self.cli = cli
@@ -25,7 +29,7 @@ class CliCompleter(object):
 
         return None
 
-    def complete_path(self, partial, state, allow_keys=False):
+    def complete_s3_path(self, partial, state, allow_keys=False):
         """
         Autocomplete for an expected S3 path by looking up possible paths at
         the current path prefix to complete with.
@@ -50,6 +54,45 @@ class CliCompleter(object):
         ]
         return str(res[state]) if state < len(res) else None
 
+    def complete_local_path(self, partial, state):
+        """
+        Autocomplete for an expected local filesystem path
+        """
+        if os.path.isfile(partial):
+            return os.path.basename(partial) if state == 0 else None
+
+        hits = []
+
+        if partial.endswith('/') and os.path.isdir(partial):
+            hits = os.listdir(partial)
+        else:
+            parent = os.path.dirname(partial)
+            frag = os.path.basename(partial)
+
+            if not parent or os.path.isdir(parent):
+                hits = [
+                    h for h in os.listdir(parent or '.')
+                    if h.startswith(frag)
+                ]
+
+        return hits[state] if state < len(hits) else None
+
+    def complete_put(self, words, state):
+        """
+        A put operation expects a local path first, followed by an S3 path.
+        We can determine which one we should be completing by the current
+        argument count, ignoring any flags.
+        """
+        args = [w for w in words[1:] if not w.startswith('-')]
+
+        if len(args) == 1:
+            return self.complete_local_path(args[-1], state)
+
+        if len(args) == 2:
+            return self.complete_s3_path(args[-1], state)
+
+        return None
+
     def complete_bookmark(self, text, state):
         # TODO: Autocomplete $ or ${}
         return None
@@ -60,17 +103,20 @@ class CliCompleter(object):
         doing and delegating to the appropriate completion method
         """
         buf = readline.get_line_buffer()
+
+        # TODO: Deal with partial quoted strings somehow; shlex won't work
+        # if the quotes aren't complete yet and .split is too naive
         words = buf.split(' ')
         cmd = words[0]
 
         if len(words) == 1:
             return self.complete_command(cmd, state)
 
-        # TODO: This is slightly naive as it assumes all arguments are expected
-        # to be a path if any of them are, but as it's only providing
-        # suggestions that's not a big problem
-        if cmd in self.EXPECTS_PATH:
-            return self.complete_path(
+        if cmd == 'put':
+            return self.complete_put(words, state)
+
+        if cmd in self.EXPECTS_S3_PATH:
+            return self.complete_s3_path(
                 words[-1],
                 state,
                 cmd in self.EXPECTS_KEY

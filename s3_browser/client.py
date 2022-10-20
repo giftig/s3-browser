@@ -2,6 +2,8 @@ import boto3
 import logging
 import os
 
+import magic
+
 from s3_browser import paths
 
 logger = logging.getLogger(__name__)
@@ -16,6 +18,7 @@ class S3Client(object):
     def __init__(self, endpoint=None):
         self.boto = boto3.client('s3', endpoint_url=endpoint)
         self.path_cache = {}
+        self.mime_typer = magic.Magic(mime=True)
 
     def clear_cache(self):
         size = len(self.path_cache)
@@ -141,6 +144,20 @@ class S3Client(object):
         """Delete a key"""
         self.boto.delete_object(Bucket=path.bucket, Key=path.path)
         self.invalidate_cache(path)
+
+    def put(self, f, dest):
+        """Write a file to an S3Path"""
+        content_type = self.mime_typer.from_file(f)
+        logger.debug(
+            'Uploading %s to %s with content-type %s', f, dest, content_type
+        )
+
+        self.boto.upload_file(
+            Filename=f,
+            Bucket=dest.bucket,
+            Key=dest.path,
+            ExtraArgs={'ContentType': content_type}
+        )
 
     def get_object(self, path):
         """Get a full object at a path"""

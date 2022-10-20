@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -42,8 +43,8 @@ class CompletionTestCase(unittest.TestCase):
         self.assertEquals(self._complete(completer, mock, 'bo', 0), 'bookmark')
 
     @patch('readline.get_line_buffer')
-    def test_complete_path_commands(self, mock):
-        """Tab on ls, ll, cd should list paths, file should also list keys"""
+    def test_complete_s3_path_commands(self, mock):
+        """Tab on several commands should complete S3 paths or keys"""
         completer = self._completer()
         prefixes = [S3Prefix('ash'), S3Prefix('mia')]
         files = [S3Key('tric.txt')]
@@ -59,6 +60,21 @@ class CompletionTestCase(unittest.TestCase):
             self.assertEquals(self._complete(completer, mock, 'cd ', i), p)
             self.assertEquals(self._complete(completer, mock, 'ls ', i), p)
             self.assertEquals(self._complete(completer, mock, 'll ', i), p)
+            self.assertEquals(self._complete(completer, mock, 'put . ', i), p)
 
         for i, f in enumerate(expected_files):
+            self.assertEquals(self._complete(completer, mock, 'cat ', i), f)
+            self.assertEquals(self._complete(completer, mock, 'cat . ', i), f)
             self.assertEquals(self._complete(completer, mock, 'file ', i), f)
+            self.assertEquals(self._complete(completer, mock, 'head ', i), f)
+            self.assertEquals(self._complete(completer, mock, 'rm ', i), f)
+            self.assertEquals(self._complete(completer, mock, 'rm . ', i), f)
+
+    @patch('readline.get_line_buffer')
+    def test_complete_local_path(self, mock):
+        """Tab on put should complete s3 path or local path arguments"""
+        completer = self._completer()
+
+        files = os.listdir('.')
+        for i, f in enumerate(files):
+            self.assertEquals(self._complete(completer, mock, 'put ', i), f)

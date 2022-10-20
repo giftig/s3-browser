@@ -21,7 +21,7 @@ setup(
             's3-browser=s3_browser.cli:main'
         ]
     },
-    install_requires=['boto3>=1.9.0'],
+    install_requires=['boto3>=1.9.0', 'python-magic>=0.4.27'],
     python_requires='>=3.2',
     long_description=readme_content(),
     long_description_content_type='text/markdown',

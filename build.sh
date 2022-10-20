@@ -7,26 +7,26 @@ cd $(dirname "$0")
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 RESET=$(tput sgr0)
-EXIT_CODE=0
 
 _flake8() {
+  local exit_code=0
+
   flake8 s3_browser setup.py
-  if [[ "$?" != 0 ]]; then
-    EXIT_CODE="$?"
-  else
+  exit_code="$?"
+
+  if [[ "$exit_code" == 0 ]]; then
     echo "${GREEN}Flake8 check passed!$RESET"
   fi
+
+  return "$exit_code"
 }
 
 mkdir -p build
-
-echo -n "$RED"
-_flake8 | tee build/flake8.log
-echo -n "$RESET"
-
 
 echo ''
 
 nosetests --with-coverage --cover-min-percentage 50 || exit 1
 
-exit $EXIT_CODE
+echo -n "$RED"
+_flake8 | tee build/flake8.log || exit 2
+echo -n "$RESET"

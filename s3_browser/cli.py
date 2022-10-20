@@ -34,7 +34,7 @@ class Cli(object):
 
     RECOGNISED_COMMANDS = [
         'bookmark', 'cat', 'cd', 'clear', 'exit', 'file', 'head', 'help', 'll',
-        'ls', 'prompt', 'pwd', 'refresh', 'rm'
+        'ls', 'prompt', 'put', 'pwd', 'refresh', 'rm'
     ]
 
     def __init__(
@@ -162,6 +162,21 @@ class Cli(object):
         for p in paths:
             self.client.rm(p)
 
+    def put(self, *args):
+        parser = SafeParser('put')
+        parser.add_argument(
+            'local_file', help='Local file to upload to S3'
+        )
+        parser.add_argument(
+            's3_key', nargs=1, help='S3 key at which to write the file'
+        )
+        args = parser.parse_args(args)
+
+        if parser.exited:
+            return
+
+        self.client.put(args.local_file, self.normalise_path(args.s3_key))
+
     def add_bookmark(self, name, path):
         name = bookmarks.BookmarkManager.clean_key(name)
         if not name:
@@ -250,22 +265,23 @@ class Cli(object):
             """
             Available commands:
 
-            help            Print this help message
-            exit            Bye!
+            help             Print this help message
+            exit             Bye!
 
-            bookmark        Add, remove, or list bookmarks.
-                            Use 'bookmark help' for more details.
-            cat [paths]     Print / concatenate contents of one or more path(s)
-            cd [path]       Change directory
-            clear           Clear the screen
-            file [key]      Show extended metadata about a given key
-            head [key]      Alias for file
-            ll [path]       Like ls, but show modified times and object types
-            ls [path]       List the contents of an s3 "directory"
-            prompt [str]    Override the current prompt string
-            pwd             Print the current working directory
-            refresh         Clear the ls cache
-            rm [keys]       Delete one or more keys
+            bookmark         Add, remove, or list bookmarks.
+                             Use 'bookmark help' for more details.
+            cat [paths]      Print / concat contents of one or more path(s)
+            cd [path]        Change directory
+            clear            Clear the screen
+            file [key]       Show extended metadata about a given key
+            head [key]       Alias for file
+            ll [path]        Like ls, but show modified times and object types
+            ls [path]        List the contents of an s3 "directory"
+            prompt [str]     Override the current prompt string
+            put [local] [s3] Upload a local file to S3
+            pwd              Print the current working directory
+            refresh          Clear the ls cache
+            rm [keys]        Delete one or more keys
 
             Tab completion is available for most commands.
 
@@ -309,6 +325,7 @@ class Cli(object):
             'll': _ll,
             'ls': self.ls,
             'prompt': self.override_prompt,
+            'put': self.put,
             'pwd': lambda: print(self.current_path.canonical),
             'refresh': self.clear_cache,
             'rm': self.rm
