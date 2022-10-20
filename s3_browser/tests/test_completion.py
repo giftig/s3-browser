@@ -36,8 +36,9 @@ class CompletionTestCase(unittest.TestCase):
     @patch('readline.get_line_buffer')
     def test_complete_partial_command(self, mock):
         completer = self._completer()
-        self.assertEquals(self._complete(completer, mock, 'c', 0), 'cd')
-        self.assertEquals(self._complete(completer, mock, 'c', 1), 'clear')
+        self.assertEquals(self._complete(completer, mock, 'c', 0), 'cat')
+        self.assertEquals(self._complete(completer, mock, 'c', 1), 'cd')
+        self.assertEquals(self._complete(completer, mock, 'c', 2), 'clear')
         self.assertEquals(self._complete(completer, mock, 'bo', 0), 'bookmark')
 
     @patch('readline.get_line_buffer')

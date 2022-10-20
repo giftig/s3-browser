@@ -101,6 +101,10 @@ class S3Client(object):
         logger.debug('Head %s: response = %s', path, res)
         return res
 
+    def get_object(self, path):
+        """Get a full object at a path"""
+        return self.boto.get_object(Bucket=path.bucket, Key=path.path)
+
     def is_path(self, path):
         # TODO: Do this with head_object instead?
         return bool(self.ls(path))

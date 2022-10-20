@@ -27,6 +27,6 @@ echo -n "$RESET"
 
 echo ''
 
-nosetests --with-coverage || exit 1
+nosetests --with-coverage --cover-min-percentage 50 || exit 1
 
 exit $EXIT_CODE

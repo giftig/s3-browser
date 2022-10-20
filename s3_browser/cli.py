@@ -33,7 +33,7 @@ class Cli(object):
     )
 
     RECOGNISED_COMMANDS = [
-        'bookmark', 'cd', 'clear', 'exit', 'file', 'head', 'help', 'll',
+        'bookmark', 'cat', 'cd', 'clear', 'exit', 'file', 'head', 'help', 'll',
         'ls', 'prompt', 'pwd', 'refresh'
     ]
 
@@ -131,6 +131,24 @@ class Cli(object):
         else:
             utils.print_grid(results)
 
+    def cat(self, *args):
+        parser = SafeParser('cat')
+        parser.add_argument('keys', nargs='+', help='S3 key(s) to concatenate')
+        args = parser.parse_args(args)
+
+        if parser.exited:
+            return
+
+        paths = [self.normalise_path(p) for p in args.keys]
+        streams = []
+
+        for p in paths:
+            obj = self.client.get_object(p)
+            utils.print_object(obj)
+
+        for s in streams:
+            utils.print_stream(s)
+
     def add_bookmark(self, name, path):
         name = bookmarks.BookmarkManager.clean_key(name)
         if not name:
@@ -224,6 +242,7 @@ class Cli(object):
 
             bookmark        Add, remove, or list bookmarks.
                             Use 'bookmark help' for more details.
+            cat [paths]     Print / concatenate contents of one or more path(s)
             cd [path]       Change directory
             clear           Clear the screen
             file [key]      Show extended metadata about a given key
@@ -267,6 +286,7 @@ class Cli(object):
         func = {
             'cd': self.cd,
             'bookmark': self.bookmark,
+            'cat': self.cat,
             'clear': lambda: os.system('clear'),
             'exit': self.exit,
             'file': self.print_head_data,

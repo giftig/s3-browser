@@ -1,6 +1,27 @@
 import shutil
 
 
+# TODO: This could probably be a couple of hundred content types
+_SAFE_CONTENT_TYPE_PREFIXES = [
+    'application/json',
+    'application/xml',
+    'application/yaml',
+    'text/'
+]
+
+
+def _is_safe_content_type(ct):
+    """Compare content type to the list of (likely) safe prefixes"""
+    if not ct:
+        return False
+
+    for prefix in _SAFE_CONTENT_TYPE_PREFIXES:
+        if ct.startswith(prefix):
+            return True
+
+    return False
+
+
 def print_grid(data):
     """
     Print a list of strings in a grid according to the terminal size
@@ -93,3 +114,25 @@ def strip_s3_metadata(data):
         'Last-Modified': http_head.get('last-modified'),
         'Metadata': metadata
     }
+
+
+def print_object(obj):
+    """
+    Safely print a data stream representing an S3 object
+
+    Refuses to print binary data, allowing only text/* content types along with
+    some typical non-binary application/* content types such as JSON and XML
+
+    Currently assumes UTF-8 encoding; a future iteration may try to interpret
+    the encoding from the content-type header if provided.
+    """
+    metadata = strip_s3_metadata(obj)
+    content_type = metadata.get('Content-Type')
+
+    if not _is_safe_content_type(content_type):
+        raise ValueError(
+            'Refusing to print unsafe content type "{}"'.format(content_type)
+        )
+
+    with obj['Body'] as c:
+        print(c.read().decode('utf-8'))
