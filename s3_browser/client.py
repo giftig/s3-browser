@@ -159,6 +159,8 @@ class S3Client(object):
             ExtraArgs={'ContentType': content_type}
         )
 
+        self.invalidate_cache(dest)
+
     def get_object(self, path):
         """Get a full object at a path"""
         return self.boto.get_object(Bucket=path.bucket, Key=path.path)
