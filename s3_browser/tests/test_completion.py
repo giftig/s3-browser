@@ -60,13 +60,14 @@ class CompletionTestCase(unittest.TestCase):
             self.assertEquals(self._complete(completer, mock, 'cd ', i), p)
             self.assertEquals(self._complete(completer, mock, 'ls ', i), p)
             self.assertEquals(self._complete(completer, mock, 'll ', i), p)
-            self.assertEquals(self._complete(completer, mock, 'put . ', i), p)
 
         for i, f in enumerate(expected_files):
             self.assertEquals(self._complete(completer, mock, 'cat ', i), f)
             self.assertEquals(self._complete(completer, mock, 'cat . ', i), f)
             self.assertEquals(self._complete(completer, mock, 'file ', i), f)
+            self.assertEquals(self._complete(completer, mock, 'get ', i), f)
             self.assertEquals(self._complete(completer, mock, 'head ', i), f)
+            self.assertEquals(self._complete(completer, mock, 'put . ', i), f)
             self.assertEquals(self._complete(completer, mock, 'rm ', i), f)
             self.assertEquals(self._complete(completer, mock, 'rm . ', i), f)
 
@@ -78,3 +79,4 @@ class CompletionTestCase(unittest.TestCase):
         files = os.listdir('.')
         for i, f in enumerate(files):
             self.assertEquals(self._complete(completer, mock, 'put ', i), f)
+            self.assertEquals(self._complete(completer, mock, 'get . ', i), f)

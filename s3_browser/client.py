@@ -161,6 +161,15 @@ class S3Client(object):
 
         self.invalidate_cache(dest)
 
+    def get(self, key, dest):
+        """Download a key (S3Path) to a local file"""
+        logger.debug('Downloading %s to %s', key, dest)
+        self.boto.download_file(
+            Bucket=key.bucket,
+            Key=key.path,
+            Filename=dest
+        )
+
     def get_object(self, path):
         """Get a full object at a path"""
         return self.boto.get_object(Bucket=path.bucket, Key=path.path)

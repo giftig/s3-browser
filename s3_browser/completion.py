@@ -77,19 +77,21 @@ class CliCompleter(object):
 
         return hits[state] if state < len(hits) else None
 
-    def complete_put(self, words, state):
+    def complete_put_get(self, words, state, s3_first):
         """
-        A put operation expects a local path first, followed by an S3 path.
-        We can determine which one we should be completing by the current
-        argument count, ignoring any flags.
+        A put operation expects a local path first, followed by an S3 path. A
+        get operation expects them the other way round. We can determine which
+        one we should be completing by the current argument count, ignoring any
+        flags.
         """
         args = [w for w in words[1:] if not w.startswith('-')]
+        arg_count = len(args)
 
-        if len(args) == 1:
+        if s3_first and arg_count == 1 or not s3_first and arg_count == 2:
+            return self.complete_s3_path(args[-1], state, allow_keys=True)
+
+        if s3_first and arg_count == 2 or not s3_first and arg_count == 1:
             return self.complete_local_path(args[-1], state)
-
-        if len(args) == 2:
-            return self.complete_s3_path(args[-1], state)
 
         return None
 
@@ -113,7 +115,10 @@ class CliCompleter(object):
             return self.complete_command(cmd, state)
 
         if cmd == 'put':
-            return self.complete_put(words, state)
+            return self.complete_put_get(words, state, s3_first=False)
+
+        if cmd == 'get':
+            return self.complete_put_get(words, state, s3_first=True)
 
         if cmd in self.EXPECTS_S3_PATH:
             return self.complete_s3_path(

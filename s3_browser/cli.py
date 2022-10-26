@@ -33,8 +33,8 @@ class Cli(object):
     )
 
     RECOGNISED_COMMANDS = [
-        'bookmark', 'cat', 'cd', 'clear', 'exit', 'file', 'head', 'help', 'll',
-        'ls', 'prompt', 'put', 'pwd', 'refresh', 'rm'
+        'bookmark', 'cat', 'cd', 'clear', 'exit', 'file', 'get', 'head',
+        'help', 'll', 'ls', 'prompt', 'put', 'pwd', 'refresh', 'rm'
     ]
 
     def __init__(
@@ -176,6 +176,28 @@ class Cli(object):
             return
 
         self.client.put(args.local_file, self.normalise_path(args.s3_key))
+
+    def get(self, *args):
+        parser = SafeParser('get')
+        parser.add_argument('s3_key', nargs=1, help='S3 key to download')
+        parser.add_argument(
+            'local_path', help='Local destination for downloaded file'
+        )
+        args = parser.parse_args(args)
+
+        if parser.exited:
+            return
+
+        s3_key = self.normalise_path(args.s3_key)
+        local_file = args.local_path
+
+        if os.path.isdir(args.local_path):
+            local_file = os.path.join(
+                args.local_path,
+                os.path.basename(s3_key.path)
+            )
+
+        self.client.get(s3_key, local_file)
 
     def add_bookmark(self, name, path):
         name = bookmarks.BookmarkManager.clean_key(name)
@@ -320,6 +342,7 @@ class Cli(object):
             'clear': lambda: os.system('clear'),
             'exit': self.exit,
             'file': self.print_head_data,
+            'get': self.get,
             'head': self.print_head_data,
             'help': self.help,
             'll': _ll,
