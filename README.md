@@ -8,7 +8,8 @@ Written in python.
   * Tab completion
   * Familiar interface for unix users (`cd`, `ls`, `file`, `pwd`, etc.)
   * Bookmarking (`bookmark add`, `bookmark ls`...)
-  * Inspect key metadata (`file`)
+  * Inspect key metadata (`file`) or contents (`cat`)
+  * Download or upload individual keys to/from local files (`put` or `get`)
   * Maintains command history
   * Lazy-loading and caching of paths (no scanning entire buckets on start up)
 
