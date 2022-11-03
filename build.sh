@@ -25,7 +25,7 @@ mkdir -p build
 
 echo ''
 
-nosetests --with-coverage --cover-min-percentage 50 || exit 1
+pytest --cov=s3_browser || exit 1
 
 echo -n "$RED"
 _flake8 | tee build/flake8.log || exit 2

@@ -32,15 +32,15 @@ class CompletionTestCase(unittest.TestCase):
         completer = self._completer()
 
         for i, cmd in enumerate(Cli.RECOGNISED_COMMANDS):
-            self.assertEquals(self._complete(completer, mock, '', i), cmd)
+            self.assertEqual(self._complete(completer, mock, '', i), cmd)
 
     @patch('readline.get_line_buffer')
     def test_complete_partial_command(self, mock):
         completer = self._completer()
-        self.assertEquals(self._complete(completer, mock, 'c', 0), 'cat')
-        self.assertEquals(self._complete(completer, mock, 'c', 1), 'cd')
-        self.assertEquals(self._complete(completer, mock, 'c', 2), 'clear')
-        self.assertEquals(self._complete(completer, mock, 'bo', 0), 'bookmark')
+        self.assertEqual(self._complete(completer, mock, 'c', 0), 'cat')
+        self.assertEqual(self._complete(completer, mock, 'c', 1), 'cd')
+        self.assertEqual(self._complete(completer, mock, 'c', 2), 'clear')
+        self.assertEqual(self._complete(completer, mock, 'bo', 0), 'bookmark')
 
     @patch('readline.get_line_buffer')
     def test_complete_s3_path_commands(self, mock):
@@ -57,19 +57,19 @@ class CompletionTestCase(unittest.TestCase):
         completer.cli.client.ls.return_value = prefixes + files
 
         for i, p in enumerate(expected_paths):
-            self.assertEquals(self._complete(completer, mock, 'cd ', i), p)
-            self.assertEquals(self._complete(completer, mock, 'ls ', i), p)
-            self.assertEquals(self._complete(completer, mock, 'll ', i), p)
+            self.assertEqual(self._complete(completer, mock, 'cd ', i), p)
+            self.assertEqual(self._complete(completer, mock, 'ls ', i), p)
+            self.assertEqual(self._complete(completer, mock, 'll ', i), p)
 
         for i, f in enumerate(expected_files):
-            self.assertEquals(self._complete(completer, mock, 'cat ', i), f)
-            self.assertEquals(self._complete(completer, mock, 'cat . ', i), f)
-            self.assertEquals(self._complete(completer, mock, 'file ', i), f)
-            self.assertEquals(self._complete(completer, mock, 'get ', i), f)
-            self.assertEquals(self._complete(completer, mock, 'head ', i), f)
-            self.assertEquals(self._complete(completer, mock, 'put . ', i), f)
-            self.assertEquals(self._complete(completer, mock, 'rm ', i), f)
-            self.assertEquals(self._complete(completer, mock, 'rm . ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'cat ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'cat . ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'file ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'get ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'head ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'put . ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'rm ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'rm . ', i), f)
 
     @patch('readline.get_line_buffer')
     def test_complete_local_path(self, mock):
@@ -78,5 +78,5 @@ class CompletionTestCase(unittest.TestCase):
 
         files = os.listdir('.')
         for i, f in enumerate(files):
-            self.assertEquals(self._complete(completer, mock, 'put ', i), f)
-            self.assertEquals(self._complete(completer, mock, 'get . ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'put ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'get . ', i), f)

@@ -67,7 +67,7 @@ class TokeniserTest(unittest.TestCase):
         )
 
         for t in tests:
-            self.assertEquals(render(t[0], context), t[1])
+            self.assertEqual(render(t[0], context), t[1])
 
     def test_render_unknown_token(self):
         """Test that rendering fails for unknown tokens"""

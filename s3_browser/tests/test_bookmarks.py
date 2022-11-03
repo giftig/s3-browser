@@ -74,7 +74,7 @@ class BookmarksTest(unittest.TestCase):
         """Should create an empty bookmark manager if file is missing"""
         f = self.gen_filename()
         manager = bookmarks.BookmarkManager(f)
-        self.assertEquals(manager.bookmarks, {})
+        self.assertEqual(manager.bookmarks, {})
 
     def test_add_bookmarks(self):
         f = self.gen_filename()
@@ -84,8 +84,8 @@ class BookmarksTest(unittest.TestCase):
         manager.add_bookmark('baz', '/hodor')
 
         actual = manager.bookmarks
-        self.assertEquals(actual.keys(), {'foo', 'bar', 'baz'})
-        self.assertEquals(
+        self.assertEqual(actual.keys(), {'foo', 'bar', 'baz'})
+        self.assertEqual(
             {v.path for v in actual.values()},
             {'/hodor', '/hodor/hodor', '/hodor/hodor/hodor'}
         )
