@@ -1,5 +1,9 @@
 # S3 Browser
 
+![Latest tag](https://img.shields.io/github/v/tag/giftig/s3-browser)
+![Build status](https://github.com/giftig/s3-browser/actions/workflows/build.yml/badge.svg)
+![MIT License](https://img.shields.io/github/license/giftig/s3-browser)
+
 A small, interactive tool to browse s3 like a regular directory structure
 
 Written in python.
