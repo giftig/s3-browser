@@ -1,4 +1,5 @@
 import os
+import shlex
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -76,7 +77,28 @@ class CompletionTestCase(unittest.TestCase):
         """Tab on put should complete s3 path or local path arguments"""
         completer = self._completer()
 
-        files = os.listdir('.')
+        files = [shlex.quote(f) for f in os.listdir('.')]
         for i, f in enumerate(files):
             self.assertEqual(self._complete(completer, mock, 'put ', i), f)
             self.assertEqual(self._complete(completer, mock, 'get . ', i), f)
+
+    @patch('readline.get_line_buffer')
+    def test_complete_paths_with_quotes(self, mock):
+        """Tab complete should work where paths need quoting"""
+        completer = self._completer()
+        completer.cli.client.ls.return_value = [S3Key('argh spaces.txt')]
+
+        partials = [
+            'cat ',
+            'cat a',
+            'cat arg',
+            'cat argh',
+            'cat "argh spaces',
+            'cat \'argh spaces',
+            'cat "argh spaces"',
+            'cat \'argh spaces\''
+        ]
+        expected = '\'argh spaces.txt\''
+
+        for p in partials:
+            self.assertEqual(self._complete(completer, mock, p, 0), expected)

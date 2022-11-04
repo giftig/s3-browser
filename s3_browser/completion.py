@@ -1,6 +1,7 @@
 import logging
 import os
 import readline
+import shlex
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,58 @@ class CliCompleter(object):
     def __init__(self, cli):
         self.cli = cli
         self.s3_client = self.cli.client
+
+    def _split_cmd(self, buf):
+        """
+        Attempt to safely split an incomplete command in a shell-safe way.
+        Shlex can get us most of the way there, but we have to deal with
+        possibly partially-quoted incomplete strings by adding the missing
+        quote before parsing where appropriate.
+        """
+        # Single empty command to complete, if we haven't started typing at all
+        if not buf:
+            return ['']
+
+        # FIXME: Can we do this analysis more intelligently using shlex.shlex
+        # and scanning / tokenising directly?
+
+        # If the command is already safe to parse by shlex, we're done
+        try:
+            result = shlex.split(buf)
+
+            # Deal with the case where we end with a space, and will want to
+            # complete the next argument with an empty string input
+            if buf.endswith(' '):
+                result.append('')
+
+            return result
+        except ValueError as e:
+            logger.debug(
+                'Error while splitting with shlex: %s, trying with ending '
+                'double-quote',
+                e
+            )
+
+        # Try with an ending double quote to complete an unclosed double-quoted
+        # string. We could attempt to figure out whether the unclosed string
+        # was double- or single-quoted and use the correct one, but there are
+        # several edge cases like ["this isn't easy] which would complicate
+        # that approach. Trying one then the other lets us use shlex's more
+        # intelligent parsing to handle those cases
+        try:
+            return shlex.split(buf + '"')
+        except ValueError as e:
+            logger.debug(
+                'Still failed splitting with shlex: %s, trying with ending '
+                'single-quote',
+                e
+            )
+
+        try:
+            return shlex.split(buf + '\'')
+        except ValueError as e:
+            logger.error('Failed last attempt at splitting with shlex: %s', e)
+            raise
 
     def complete_command(self, cmd, state):
         """
@@ -46,20 +99,22 @@ class CliCompleter(object):
             example.
         """
         res = [
-            str(r) for r in self.s3_client.ls(
+            shlex.quote(str(r)) for r in self.s3_client.ls(
                 self.cli.normalise_path(partial),
                 path_fragment=not partial.endswith('/')
             )
             if allow_keys or not r.is_key
         ]
-        return str(res[state]) if state < len(res) else None
+        return res[state] if state < len(res) else None
 
     def complete_local_path(self, partial, state):
         """
         Autocomplete for an expected local filesystem path
         """
         if os.path.isfile(partial):
-            return os.path.basename(partial) if state == 0 else None
+            return (
+                shlex.quote(os.path.basename(partial)) if state == 0 else None
+            )
 
         hits = []
 
@@ -75,7 +130,7 @@ class CliCompleter(object):
                     if h.startswith(frag)
                 ]
 
-        return hits[state] if state < len(hits) else None
+        return shlex.quote(hits[state]) if state < len(hits) else None
 
     def complete_put_get(self, words, state, s3_first):
         """
@@ -106,9 +161,7 @@ class CliCompleter(object):
         """
         buf = readline.get_line_buffer()
 
-        # TODO: Deal with partial quoted strings somehow; shlex won't work
-        # if the quotes aren't complete yet and .split is too naive
-        words = buf.split(' ')
+        words = self._split_cmd(buf)
         cmd = words[0]
 
         if len(words) == 1:
