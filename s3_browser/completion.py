@@ -98,13 +98,36 @@ class CliCompleter(object):
             directories). This distinguishes something you can cd into, for
             example.
         """
-        res = [
+        # ~ is a special case referring to the root of the current bucket,
+        # so just add a forward slash to continue the path from that root
+        if partial == '~':
+            return '~/' if state == 0 else None
+
+        special_results = []
+        search_term = None
+        basename = os.path.basename(partial)
+
+        # If our path ends with . or .., we might be looking for keys prefixed
+        # with those strings, or expect to complete as ./ or ../ with the
+        # relative meanings of those terms. In which case, we need to look for
+        # files with that prefix in the directory above them, rather than
+        # following the relative paths, as well as suggesting ./ or ../
+        if basename in {'.', '..'}:
+            special_results.append(basename + '/')
+            search_term = self.cli.normalise_path(os.path.dirname(partial))
+            search_term.path = os.path.join(search_term.path, basename)
+        else:
+            search_term = self.cli.normalise_path(partial)
+
+        hits = [
             shlex.quote(str(r)) for r in self.s3_client.ls(
-                self.cli.normalise_path(partial),
+                search_term,
                 path_fragment=not partial.endswith('/')
             )
             if allow_keys or not r.is_key
         ]
+
+        res = special_results + hits
         return res[state] if state < len(res) else None
 
     def complete_local_path(self, partial, state):

@@ -64,13 +64,22 @@ class CompletionTestCase(unittest.TestCase):
 
         for i, f in enumerate(expected_files):
             self.assertEqual(self._complete(completer, mock, 'cat ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'cat . ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'cat ./ ', i), f)
             self.assertEqual(self._complete(completer, mock, 'file ', i), f)
             self.assertEqual(self._complete(completer, mock, 'get ', i), f)
             self.assertEqual(self._complete(completer, mock, 'head ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'put . ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'put ./ ', i), f)
             self.assertEqual(self._complete(completer, mock, 'rm ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'rm . ', i), f)
+            self.assertEqual(self._complete(completer, mock, 'rm ./ ', i), f)
+
+        # . and .. should suggest the relative dirs and also any s3 key hits
+        # Note that it'd be limited to dot-prefixed paths in reality, but our
+        # mock always returns expected_files for a key search in this case
+        for i, f in enumerate(['./'] + expected_files):
+            self.assertEqual(self._complete(completer, mock, 'cat .', i), f)
+
+        for i, f in enumerate(['../'] + expected_files):
+            self.assertEqual(self._complete(completer, mock, 'cat ..', i), f)
 
     @patch('readline.get_line_buffer')
     def test_complete_local_path(self, mock):
