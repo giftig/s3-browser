@@ -53,11 +53,8 @@ class BookmarkManager(object):
         return True
 
     @classmethod
-    def clean_key(cls, k):
-        if not cls.KEY_REGEX.match(k):
-            return None
-
-        return k
+    def validate_key(cls, k):
+        return bool(cls.KEY_REGEX.match(k))
 
     def clean_data(self, data):
         bookmarks = data.get('bookmarks', {})

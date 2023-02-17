@@ -200,8 +200,7 @@ class Cli(object):
         self.client.get(s3_key, local_file)
 
     def add_bookmark(self, name, path):
-        name = bookmarks.BookmarkManager.clean_key(name)
-        if not name:
+        if not bookmarks.BookmarkManager.validate_key(name):
             self._err('{} is an invalid name for a bookmark'.format(name))
             return
 

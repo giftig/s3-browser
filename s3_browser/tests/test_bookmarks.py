@@ -141,10 +141,10 @@ class BookmarksTest(unittest.TestCase):
         invalid_names = ['thisnameisabittoolong', 'funny/characters']
 
         for n in valid_names:
-            self.assertEqual(bookmarks.BookmarkManager.clean_key(n), n)
+            self.assertTrue(bookmarks.BookmarkManager.validate_key(n))
 
         for n in invalid_names:
-            self.assertIsNone(bookmarks.BookmarkManager.clean_key(n))
+            self.assertFalse(bookmarks.BookmarkManager.validate_key(n))
 
     def test_unreadable_bookmark_file(self):
         """If the bookmark file is unreadable, load no bookmarks"""
