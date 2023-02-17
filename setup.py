@@ -14,7 +14,7 @@ def readme_content():
 
 setup(
     name='s3_browser',
-    version='0.3.5',
+    version='0.3.6',
     packages=['s3_browser'],
     entry_points={
         'console_scripts': [
