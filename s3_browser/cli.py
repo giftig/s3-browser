@@ -140,14 +140,10 @@ class Cli(object):
             return
 
         paths = [self.normalise_path(p) for p in args.keys]
-        streams = []
 
         for p in paths:
             obj = self.client.get_object(p)
             utils.print_object(obj)
-
-        for s in streams:
-            utils.print_stream(s)
 
     def rm(self, *args):
         parser = SafeParser('rm')
