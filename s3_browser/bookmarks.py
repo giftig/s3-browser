@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class BookmarkManager(object):
-    KEY_REGEX = re.compile('^[a-zA-Z0-9_]{1,16}$')
+    KEY_REGEX = re.compile('^[a-zA-Z0-9_][a-zA-Z0-9_-]{0,15}$')
 
     def __init__(self, bookmark_file):
         self.bookmark_file = bookmark_file

@@ -137,8 +137,8 @@ class BookmarksTest(unittest.TestCase):
 
     def test_validate_bookmark_key(self):
         """Key names should be checked against a pattern"""
-        valid_names = ['hodor', 'ostrich', 'potato123']
-        invalid_names = ['thisnameisabittoolong', 'funny/characters']
+        valid_names = ['hodor', 'ostrich', 'potato123', 'dashy-key']
+        invalid_names = ['thisnameisabittoolong', 'funny/characters', '-flag']
 
         for n in valid_names:
             self.assertTrue(bookmarks.BookmarkManager.validate_key(n))
