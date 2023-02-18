@@ -291,6 +291,7 @@ class Cli(object):
             cd [path]        Change directory
             clear            Clear the screen
             file [key]       Show extended metadata about a given key
+            get [s3] [local] Download an S3 key to local disk
             head [key]       Alias for file
             ll [path]        Like ls, but show modified times and object types
             ls [path]        List the contents of an s3 "directory"
@@ -301,6 +302,9 @@ class Cli(object):
             rm [keys]        Delete one or more keys
 
             Tab completion is available for most commands.
+
+            Most commands support the --help flag to see full usage
+            information, e.g. cat --help
 
             Command history is available (stored in ~/.s3_browser_history)
             """
@@ -331,9 +335,9 @@ class Cli(object):
             return self.ls('-1', *args)
 
         func = {
-            'cd': self.cd,
             'bookmark': self.bookmark,
             'cat': self.cat,
+            'cd': self.cd,
             'clear': lambda: os.system('clear'),
             'exit': self.exit,
             'file': self.print_head_data,
