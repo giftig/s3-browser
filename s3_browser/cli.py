@@ -401,7 +401,7 @@ def main():
         )
     )
     parser.add_argument(
-        '-e-', '--endpoint', type=str, default=None,
+        '-e', '--endpoint', type=str, default=None,
         help=(
             'Optional endpoint URL to use if not the default Amazon S3 URL. '
             'Hoststring like https://example.com:1234'
