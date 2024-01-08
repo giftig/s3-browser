@@ -1,8 +1,9 @@
 import os
 import shlex
-import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
+
+import pytest
 
 from s3_browser.cli import Cli
 from s3_browser.completion import CliCompleter
@@ -10,7 +11,7 @@ from s3_browser.paths import S3Key
 from s3_browser.paths import S3Prefix
 
 
-class CompletionTestCase(unittest.TestCase):
+class TestCompletion:
     def _completer(self):
         """Create a CLI completer and return both it and the mocked CLI"""
         m = MagicMock()
@@ -33,15 +34,15 @@ class CompletionTestCase(unittest.TestCase):
         completer = self._completer()
 
         for i, cmd in enumerate(Cli.RECOGNISED_COMMANDS):
-            self.assertEqual(self._complete(completer, mock, '', i), cmd)
+            assert self._complete(completer, mock, '', i) == cmd
 
     @patch('readline.get_line_buffer')
     def test_complete_partial_command(self, mock):
         completer = self._completer()
-        self.assertEqual(self._complete(completer, mock, 'c', 0), 'cat')
-        self.assertEqual(self._complete(completer, mock, 'c', 1), 'cd')
-        self.assertEqual(self._complete(completer, mock, 'c', 2), 'clear')
-        self.assertEqual(self._complete(completer, mock, 'bo', 0), 'bookmark')
+        assert self._complete(completer, mock, 'c', 0) == 'cat'
+        assert self._complete(completer, mock, 'c', 1) == 'cd'
+        assert self._complete(completer, mock, 'c', 2) == 'clear'
+        assert self._complete(completer, mock, 'bo', 0) == 'bookmark'
 
     @patch('readline.get_line_buffer')
     def test_complete_s3_path_commands(self, mock):
@@ -58,28 +59,28 @@ class CompletionTestCase(unittest.TestCase):
         completer.cli.client.ls.return_value = prefixes + files
 
         for i, p in enumerate(expected_paths):
-            self.assertEqual(self._complete(completer, mock, 'cd ', i), p)
-            self.assertEqual(self._complete(completer, mock, 'ls ', i), p)
-            self.assertEqual(self._complete(completer, mock, 'll ', i), p)
+            assert self._complete(completer, mock, 'cd ', i) == p
+            assert self._complete(completer, mock, 'ls ', i) == p
+            assert self._complete(completer, mock, 'll ', i) == p
 
         for i, f in enumerate(expected_files):
-            self.assertEqual(self._complete(completer, mock, 'cat ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'cat ./ ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'file ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'get ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'head ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'put ./ ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'rm ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'rm ./ ', i), f)
+            assert self._complete(completer, mock, 'cat ', i) == f
+            assert self._complete(completer, mock, 'cat ./ ', i) == f
+            assert self._complete(completer, mock, 'file ', i) == f
+            assert self._complete(completer, mock, 'get ', i) == f
+            assert self._complete(completer, mock, 'head ', i) == f
+            assert self._complete(completer, mock, 'put ./ ', i) == f
+            assert self._complete(completer, mock, 'rm ', i) == f
+            assert self._complete(completer, mock, 'rm ./ ', i) == f
 
         # . and .. should suggest the relative dirs and also any s3 key hits
         # Note that it'd be limited to dot-prefixed paths in reality, but our
         # mock always returns expected_files for a key search in this case
         for i, f in enumerate(['./'] + expected_files):
-            self.assertEqual(self._complete(completer, mock, 'cat .', i), f)
+            assert self._complete(completer, mock, 'cat .', i) == f
 
         for i, f in enumerate(['../'] + expected_files):
-            self.assertEqual(self._complete(completer, mock, 'cat ..', i), f)
+            assert self._complete(completer, mock, 'cat ..', i) == f
 
     @patch('readline.get_line_buffer')
     def test_complete_local_path(self, mock):
@@ -88,8 +89,8 @@ class CompletionTestCase(unittest.TestCase):
 
         files = [shlex.quote(f) for f in os.listdir('.')]
         for i, f in enumerate(files):
-            self.assertEqual(self._complete(completer, mock, 'put ', i), f)
-            self.assertEqual(self._complete(completer, mock, 'get . ', i), f)
+            assert self._complete(completer, mock, 'put ', i) == f
+            assert self._complete(completer, mock, 'get . ', i) == f
 
     @patch('readline.get_line_buffer')
     def test_complete_paths_with_quotes(self, mock):
@@ -110,4 +111,4 @@ class CompletionTestCase(unittest.TestCase):
         expected = '\'argh spaces.txt\''
 
         for p in partials:
-            self.assertEqual(self._complete(completer, mock, p, 0), expected)
+            assert self._complete(completer, mock, p, 0) == expected

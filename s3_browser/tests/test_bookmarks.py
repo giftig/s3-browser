@@ -1,12 +1,13 @@
 import json
 import os
-import unittest
 import uuid
+
+import pytest
 
 from s3_browser import bookmarks
 
 
-class BookmarksTest(unittest.TestCase):
+class TestBookmarks:
     FILE_PREFIX = 's3_browser_tests_'
 
     data = {
@@ -19,8 +20,10 @@ class BookmarksTest(unittest.TestCase):
         }
     }
 
-    def tearDown(self):
+    @pytest.fixture(scope="class", autouse=True)
+    def tear_down(self):
         """Clean up temporary bookmark files"""
+        yield
         for f in os.listdir('/tmp'):
             if not f.startswith(self.FILE_PREFIX):
                 continue
@@ -57,7 +60,7 @@ class BookmarksTest(unittest.TestCase):
 
         manager = bookmarks.BookmarkManager(f)
         actual = self.normalise_bookmarks(manager.bookmarks)
-        self.assertEqual(actual, self.expected_bookmarks)
+        assert actual == self.expected_bookmarks
 
     def test_clean_bookmark_data(self):
         """Should ignore unexpected fields in the bookmark file"""
@@ -68,13 +71,13 @@ class BookmarksTest(unittest.TestCase):
 
         manager = bookmarks.BookmarkManager(f)
         actual = self.normalise_bookmarks(manager.bookmarks)
-        self.assertEqual(actual, self.expected_bookmarks)
+        assert actual == self.expected_bookmarks
 
     def test_missing_bookmark_file(self):
         """Should create an empty bookmark manager if file is missing"""
         f = self.gen_filename()
         manager = bookmarks.BookmarkManager(f)
-        self.assertEqual(manager.bookmarks, {})
+        assert manager.bookmarks == {}
 
     def test_add_bookmarks(self):
         f = self.gen_filename()
@@ -84,14 +87,14 @@ class BookmarksTest(unittest.TestCase):
         manager.add_bookmark('baz', '/hodor')
 
         actual = manager.bookmarks
-        self.assertEqual(actual.keys(), {'foo', 'bar', 'baz'})
-        self.assertEqual(
-            {v.path for v in actual.values()},
+        assert actual.keys() == {'foo', 'bar', 'baz'}
+        assert (
+            {v.path for v in actual.values()} ==
             {'/hodor', '/hodor/hodor', '/hodor/hodor/hodor'}
         )
 
         for v in actual.values():
-            self.assertIsNotNone(v.created_on)
+            assert v.created_on is not None
 
     def test_remove_bookmarks(self):
         f = self.gen_filename()
@@ -99,19 +102,19 @@ class BookmarksTest(unittest.TestCase):
         manager = bookmarks.BookmarkManager(f)
 
         actual = self.normalise_bookmarks(manager.bookmarks)
-        self.assertEqual(actual, self.expected_bookmarks)
+        assert actual == self.expected_bookmarks
 
         for b in self.data['bookmarks'].keys():
-            self.assertTrue(manager.remove_bookmark(b))
+            manager.remove_bookmark(b) is True
 
         actual = self.normalise_bookmarks(manager.bookmarks)
-        self.assertEqual(actual, {})
+        assert actual == {}
 
     def test_remove_missing_bookmark(self):
         f = self.gen_filename()
         man = bookmarks.BookmarkManager(f)
         man.add_bookmark('awesome_bookmark', 'amazing/path')
-        self.assertFalse(man.remove_bookmark('lame_bookmark'))
+        assert man.remove_bookmark('lame_bookmark') is False
 
     def test_save_bookmarks(self):
         f = self.gen_filename()
@@ -129,11 +132,11 @@ class BookmarksTest(unittest.TestCase):
         expected = self.normalise_bookmarks(man1.bookmarks)
 
         # Check the second instance is indeed empty
-        self.assertEqual(self.normalise_bookmarks(man2.bookmarks), {})
+        assert self.normalise_bookmarks(man2.bookmarks) == {}
 
         # Now reload from disk and check it's the same as we just saved
         man2.load()
-        self.assertEqual(self.normalise_bookmarks(man2.bookmarks), expected)
+        assert self.normalise_bookmarks(man2.bookmarks) == expected
 
     def test_validate_bookmark_key(self):
         """Key names should be checked against a pattern"""
@@ -141,10 +144,10 @@ class BookmarksTest(unittest.TestCase):
         invalid_names = ['thisnameisabittoolong', 'funny/characters', '-flag']
 
         for n in valid_names:
-            self.assertTrue(bookmarks.BookmarkManager.validate_key(n))
+            assert bookmarks.BookmarkManager.validate_key(n) is True
 
         for n in invalid_names:
-            self.assertFalse(bookmarks.BookmarkManager.validate_key(n))
+            assert bookmarks.BookmarkManager.validate_key(n) is False
 
     def test_unreadable_bookmark_file(self):
         """If the bookmark file is unreadable, load no bookmarks"""
@@ -153,8 +156,8 @@ class BookmarksTest(unittest.TestCase):
         os.chmod(f, 0o200)  # TODO: Cross-platform solution?
 
         man = bookmarks.BookmarkManager(f)
-        self.assertIsNone(man.bookmarks)
-        self.assertFalse(man.add_bookmark('nope', 'nope/nope/nope'))
+        assert man.bookmarks is None
+        assert man.add_bookmark('nope', 'nope/nope/nope') is False
 
     def test_malformed_bookmark_file(self):
         """If the JSON is malformed, refuse to support bookmarks"""
@@ -163,8 +166,8 @@ class BookmarksTest(unittest.TestCase):
             ff.write('bad json')
 
         man = bookmarks.BookmarkManager(f)
-        self.assertIsNone(man.bookmarks)
-        self.assertFalse(man.add_bookmark('nope', 'nope/nope/nope'))
+        assert man.bookmarks is None
+        assert man.add_bookmark('nope', 'nope/nope/nope') is False
 
     def test_bad_bookmark_file_data(self):
         """If the JSON has a bad structure, refuse to support bookmarks"""
@@ -172,5 +175,5 @@ class BookmarksTest(unittest.TestCase):
         self.write_fixture(f, {'bookmarks': 'should be an object!'})
 
         man = bookmarks.BookmarkManager(f)
-        self.assertIsNone(man.bookmarks)
-        self.assertFalse(man.add_bookmark('nope', 'nope/nope/nope'))
+        assert man.bookmarks is None
+        assert man.add_bookmark('nope', 'nope/nope/nope') is False
