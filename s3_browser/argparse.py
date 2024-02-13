@@ -10,6 +10,7 @@ class ArgumentParser(argparse.ArgumentParser):
     When we would normally exit safely, such as with --help, we'll add an extra
     flag to the parser so that the caller can determine it shouldn't proceed.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.exited = False

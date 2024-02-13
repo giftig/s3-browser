@@ -8,19 +8,14 @@ import shlex
 import sys
 import textwrap
 
-from s3_browser import bookmarks
-from s3_browser import client
-from s3_browser import completion
-from s3_browser import paths
-from s3_browser import tokeniser
-from s3_browser import utils
+from s3_browser import bookmarks, client, completion, paths, tokeniser, utils
 from s3_browser.argparse import ArgumentParser as SafeParser
 
 logger = logging.getLogger(__name__)
 
 
 class Cli(object):
-    DEFAULT_PS1 = 's3://\001\x1b[36m\002{path_short}\001\x1b[0m\002> '
+    DEFAULT_PS1 = "s3://\001\x1b[36m\002{path_short}\001\x1b[0m\002> "
     SPLASH = textwrap.dedent(
         """
         Welcome to the interactive AWS S3 navigator.
@@ -33,8 +28,22 @@ class Cli(object):
     )
 
     RECOGNISED_COMMANDS = [
-        'bookmark', 'cat', 'cd', 'clear', 'exit', 'file', 'get', 'head',
-        'help', 'll', 'ls', 'prompt', 'put', 'pwd', 'refresh', 'rm'
+        "bookmark",
+        "cat",
+        "cd",
+        "clear",
+        "exit",
+        "file",
+        "get",
+        "head",
+        "help",
+        "ll",
+        "ls",
+        "prompt",
+        "put",
+        "pwd",
+        "refresh",
+        "rm",
     ]
 
     def __init__(
@@ -43,11 +52,11 @@ class Cli(object):
         working_dir=None,
         ps1=None,
         history_file=None,
-        bookmark_file=None
+        bookmark_file=None,
     ):
         self.history_file = history_file
         self.ps1 = ps1 or Cli.DEFAULT_PS1
-        self.current_path = paths.S3Path.from_path(working_dir or '/')
+        self.current_path = paths.S3Path.from_path(working_dir or "/")
 
         self.client = client.S3Client(endpoint=endpoint)
 
@@ -62,48 +71,50 @@ class Cli(object):
     @staticmethod
     def _err(msg):
         """Print a message in red"""
-        print('\x1b[31m{}\x1b[0m'.format(msg), file=sys.stderr)
+        print("\x1b[31m{}\x1b[0m".format(msg), file=sys.stderr)
 
     def normalise_path(self, path):
         # Render variables present in the path
         context = (
-            {} if not self.bookmarks else
-            {k: v.path for k, v in self.bookmarks.bookmarks.items()}
+            {}
+            if not self.bookmarks
+            else {k: v.path for k, v in self.bookmarks.bookmarks.items()}
         )
         path = tokeniser.render(tokeniser.tokenise(path), context)
 
         # Strip off the protocol prefix if provided
-        if path.startswith('s3://'):
+        if path.startswith("s3://"):
             path = path[5:]
 
         # Special case: ~ refers to the root of the current bucket
-        if path == '~' or path == '~/':
+        if path == "~" or path == "~/":
             return paths.S3Path(bucket=self.current_path.bucket, path=None)
 
-        path = os.path.join('/' + str(self.current_path), path)
+        path = os.path.join("/" + str(self.current_path), path)
         return paths.S3Path.from_path(path)
 
-    def cd(self, path=''):
+    def cd(self, path=""):
         full_path = self.normalise_path(path)
 
         if self.client.is_path(full_path):
             self.current_path = full_path
             return True
 
-        self._err('cannot access \'{}\': no such s3 directory'.format(path))
+        self._err("cannot access '{}': no such s3 directory".format(path))
         return False
 
     def ls(self, *args):
-        parser = SafeParser('ls')
+        parser = SafeParser("ls")
         parser.add_argument(
-            '-l', dest='full_details', action='store_true',
-            help='Use a long list format, including additional s3 metadata'
+            "-l",
+            dest="full_details",
+            action="store_true",
+            help="Use a long list format, including additional s3 metadata",
         )
         parser.add_argument(
-            '-1', dest='oneline', action='store_true',
-            help='List one result per line'
+            "-1", dest="oneline", action="store_true", help="List one result per line"
         )
-        parser.add_argument('path', default='', nargs='?')
+        parser.add_argument("path", default="", nargs="?")
         args = parser.parse_args(args)
 
         if parser.exited:
@@ -120,10 +131,7 @@ class Cli(object):
                 b = bookmarked.get(str(self.normalise_path(r.path_string)))
                 r.bookmark = b
 
-        results = [
-            str(r) if not args.full_details else r.full_details
-            for r in results
-        ]
+        results = [str(r) if not args.full_details else r.full_details for r in results]
 
         if args.oneline:
             for r in results:
@@ -132,8 +140,8 @@ class Cli(object):
             utils.print_grid(results)
 
     def cat(self, *args):
-        parser = SafeParser('cat')
-        parser.add_argument('keys', nargs='+', help='S3 key(s) to concatenate')
+        parser = SafeParser("cat")
+        parser.add_argument("keys", nargs="+", help="S3 key(s) to concatenate")
         args = parser.parse_args(args)
 
         if parser.exited:
@@ -146,8 +154,8 @@ class Cli(object):
             utils.print_object(obj)
 
     def rm(self, *args):
-        parser = SafeParser('rm')
-        parser.add_argument('keys', nargs='+', help='S3 key(s) to delete')
+        parser = SafeParser("rm")
+        parser.add_argument("keys", nargs="+", help="S3 key(s) to delete")
         args = parser.parse_args(args)
 
         if parser.exited:
@@ -159,13 +167,9 @@ class Cli(object):
             self.client.rm(p)
 
     def put(self, *args):
-        parser = SafeParser('put')
-        parser.add_argument(
-            'local_file', help='Local file to upload to S3'
-        )
-        parser.add_argument(
-            's3_key', nargs=1, help='S3 key at which to write the file'
-        )
+        parser = SafeParser("put")
+        parser.add_argument("local_file", help="Local file to upload to S3")
+        parser.add_argument("s3_key", nargs=1, help="S3 key at which to write the file")
         args = parser.parse_args(args)
 
         if parser.exited:
@@ -174,11 +178,9 @@ class Cli(object):
         self.client.put(args.local_file, self.normalise_path(args.s3_key))
 
     def get(self, *args):
-        parser = SafeParser('get')
-        parser.add_argument('s3_key', nargs=1, help='S3 key to download')
-        parser.add_argument(
-            'local_path', help='Local destination for downloaded file'
-        )
+        parser = SafeParser("get")
+        parser.add_argument("s3_key", nargs=1, help="S3 key to download")
+        parser.add_argument("local_path", help="Local destination for downloaded file")
         args = parser.parse_args(args)
 
         if parser.exited:
@@ -188,69 +190,64 @@ class Cli(object):
         local_file = args.local_path
 
         if os.path.isdir(args.local_path):
-            local_file = os.path.join(
-                args.local_path,
-                os.path.basename(s3_key.path)
-            )
+            local_file = os.path.join(args.local_path, os.path.basename(s3_key.path))
 
         self.client.get(s3_key, local_file)
 
     def add_bookmark(self, name, path):
         if not bookmarks.BookmarkManager.validate_key(name):
-            self._err('{} is an invalid name for a bookmark'.format(name))
+            self._err("{} is an invalid name for a bookmark".format(name))
             return
 
         path = self.normalise_path(path)
 
         if not self.client.is_path(path):
-            self._err(
-                'cannot bookmark \'{}\': not an s3 directory'.format(path)
-            )
+            self._err("cannot bookmark '{}': not an s3 directory".format(path))
             return
 
         if not self.bookmarks.add_bookmark(name, path):
-            self._err('Failed to add bookmark')
+            self._err("Failed to add bookmark")
             return
 
     def remove_bookmark(self, name):
         if not self.bookmarks.remove_bookmark(name):
-            self._err('{} is not the name of a bookmark'.format(name))
+            self._err("{} is not the name of a bookmark".format(name))
             return False
 
         return True
 
     def list_bookmarks(self):
         for k, v in self.bookmarks.bookmarks.items():
-            print('\x1b[33m${: <18}\x1b[0m {}'.format(k, str(v)))
+            print("\x1b[33m${: <18}\x1b[0m {}".format(k, str(v)))
 
     def bookmark_help(self):
-        print(textwrap.dedent(
-            """
+        print(
+            textwrap.dedent(
+                """
             Add, remove, or list bookmarks.
 
             add NAME PATH   Add a bookmark called NAME pointing at PATH
             rm NAME         Remove the named bookmark
             list, ls        List all bookmarks
             """
-        ))
+            )
+        )
 
     def bookmark(self, op, *args):
         if not self.bookmarks:
-            self._err('Bookmarks are unavailable')
+            self._err("Bookmarks are unavailable")
             return
 
         f = {
-            'add': self.add_bookmark,
-            'ls': self.list_bookmarks,
-            'list': self.list_bookmarks,
-            'help': self.bookmark_help,
-            'rm': self.remove_bookmark
+            "add": self.add_bookmark,
+            "ls": self.list_bookmarks,
+            "list": self.list_bookmarks,
+            "help": self.bookmark_help,
+            "rm": self.remove_bookmark,
         }.get(op)
 
         if not f:
-            self._err(
-                'Bad operation \'{}\'. Try help for correct usage'.format(op)
-            )
+            self._err("Bad operation '{}'. Try help for correct usage".format(op))
             return
 
         return f(*args)
@@ -264,7 +261,7 @@ class Cli(object):
         data = self.client.head(key)
         data = utils.strip_s3_metadata(data)
 
-        print('\x1b[33m{}\x1b[0m'.format(key.canonical))
+        print("\x1b[33m{}\x1b[0m".format(key.canonical))
         print()
         utils.print_dict(data)
 
@@ -272,14 +269,13 @@ class Cli(object):
         return self.ps1.format(
             path=self.current_path,
             path_short=self.current_path.short_format,
-            path_end=(
-                self.current_path.name or self.current_path.bucket or '/'
-            )
+            path_end=(self.current_path.name or self.current_path.bucket or "/"),
         )
 
     def help(self):
-        print(textwrap.dedent(
-            """
+        print(
+            textwrap.dedent(
+                """
             Available commands:
 
             help             Print this help message
@@ -308,13 +304,14 @@ class Cli(object):
 
             Command history is available (stored in ~/.s3_browser_history)
             """
-        ))
+            )
+        )
 
     def override_prompt(self, *args):
         if not args:
             self.ps1 = self.DEFAULT_PS1
         else:
-            self.ps1 = ' '.join(args) + ' '
+            self.ps1 = " ".join(args) + " "
 
     def exit(self):
         if self.history_file:
@@ -324,7 +321,7 @@ class Cli(object):
 
     def clear_cache(self):
         size = self.client.clear_cache()
-        print('Cleared {} cached paths.'.format(size))
+        print("Cleared {} cached paths.".format(size))
 
     def prompt(self):
         cmd = shlex.split(input(self._render_prompt()))
@@ -332,36 +329,36 @@ class Cli(object):
             return
 
         def _ll(*args):
-            return self.ls('-1', *args)
+            return self.ls("-1", *args)
 
         func = {
-            'bookmark': self.bookmark,
-            'cat': self.cat,
-            'cd': self.cd,
-            'clear': lambda: os.system('clear'),
-            'exit': self.exit,
-            'file': self.print_head_data,
-            'get': self.get,
-            'head': self.print_head_data,
-            'help': self.help,
-            'll': _ll,
-            'ls': self.ls,
-            'prompt': self.override_prompt,
-            'put': self.put,
-            'pwd': lambda: print(self.current_path.canonical),
-            'refresh': self.clear_cache,
-            'rm': self.rm
+            "bookmark": self.bookmark,
+            "cat": self.cat,
+            "cd": self.cd,
+            "clear": lambda: os.system("clear"),
+            "exit": self.exit,
+            "file": self.print_head_data,
+            "get": self.get,
+            "head": self.print_head_data,
+            "help": self.help,
+            "ll": _ll,
+            "ls": self.ls,
+            "prompt": self.override_prompt,
+            "put": self.put,
+            "pwd": lambda: print(self.current_path.canonical),
+            "refresh": self.clear_cache,
+            "rm": self.rm,
         }.get(cmd[0])
 
         if not func:
-            self._err('Unrecognised command: \'{}\''.format(cmd[0]))
+            self._err("Unrecognised command: '{}'".format(cmd[0]))
             return
 
         try:
             func(*cmd[1:])
         except TypeError as e:
             self._err(str(e))
-            logger.exception('Error while running command %s', cmd)
+            logger.exception("Error while running command %s", cmd)
 
     def read_loop(self):
         """The main start up + main loop of the cli"""
@@ -374,60 +371,72 @@ class Cli(object):
             try:
                 self.prompt()
             except KeyboardInterrupt:
-                print('')
+                print("")
             except Exception as e:
                 self._err(str(e))
-                logger.exception('Unexpected error')
+                logger.exception("Unexpected error")
 
 
 def configure_debug_logging():
     logging.basicConfig(
-        filename='/tmp/s3_browser.log',
-        format='%(asctime)s %(levelname)s %(module)s:%(funcName)s %(message)s',
-        level=logging.INFO
+        filename="/tmp/s3_browser.log",
+        format="%(asctime)s %(levelname)s %(module)s:%(funcName)s %(message)s",
+        level=logging.INFO,
     )
 
-    logging.getLogger('s3_browser').setLevel(logging.DEBUG)
+    logging.getLogger("s3_browser").setLevel(logging.DEBUG)
     logger.setLevel(logging.DEBUG)
 
 
 def main():
-    parser = argparse.ArgumentParser('s3-browser')
+    parser = argparse.ArgumentParser("s3-browser")
     parser.add_argument(
-        '-p', '--prompt', dest='prompt', type=str, default=None,
+        "-p",
+        "--prompt",
+        dest="prompt",
+        type=str,
+        default=None,
         help=(
-            'Prompt string to use; use the special patterns {path}, '
-            '{path_short}, or {path_end} for displaying the current path'
-        )
+            "Prompt string to use; use the special patterns {path}, "
+            "{path_short}, or {path_end} for displaying the current path"
+        ),
     )
     parser.add_argument(
-        '-e', '--endpoint', type=str, default=None,
+        "-e",
+        "--endpoint",
+        type=str,
+        default=None,
         help=(
-            'Optional endpoint URL to use if not the default Amazon S3 URL. '
-            'Hoststring like https://example.com:1234'
-        )
+            "Optional endpoint URL to use if not the default Amazon S3 URL. "
+            "Hoststring like https://example.com:1234"
+        ),
     )
 
     parser.add_argument(
-        '--bookmarks', dest='bookmark_file', type=str,
-        default='{}/.s3_browser_bookmarks'.format(
-            os.environ.get('HOME', '/etc')
-        )
+        "--bookmarks",
+        dest="bookmark_file",
+        type=str,
+        default="{}/.s3_browser_bookmarks".format(os.environ.get("HOME", "/etc")),
     )
     parser.add_argument(
-        '--history', dest='history_file', type=str,
-        default='{}/.s3_browser_history'.format(os.environ.get('HOME', '/etc'))
+        "--history",
+        dest="history_file",
+        type=str,
+        default="{}/.s3_browser_history".format(os.environ.get("HOME", "/etc")),
     )
     parser.add_argument(
-        '--debug', dest='debug', action='store_true', default=False,
-        help='Turn on debug mode, logging information to /tmp/s3_browser.log'
+        "--debug",
+        dest="debug",
+        action="store_true",
+        default=False,
+        help="Turn on debug mode, logging information to /tmp/s3_browser.log",
     )
-    parser.add_argument('working_dir', nargs='?', type=str, default='/')
+    parser.add_argument("working_dir", nargs="?", type=str, default="/")
     args = parser.parse_args()
 
     if args.debug:
         configure_debug_logging()
-        logger.info('Starting s3 browser in debug mode')
+        logger.info("Starting s3 browser in debug mode")
     else:
         logging.disable(logging.CRITICAL)
 
@@ -436,9 +445,9 @@ def main():
         working_dir=args.working_dir,
         ps1=args.prompt,
         history_file=args.history_file,
-        bookmark_file=args.bookmark_file
+        bookmark_file=args.bookmark_file,
     ).read_loop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -10,8 +10,9 @@ class CliCompleter(object):
     """
     Tab-complete functionality for the cli
     """
-    EXPECTS_KEY = {'cat', 'file', 'head', 'rm'}
-    EXPECTS_S3_PATH = {'cd', 'ls', 'll'}.union(EXPECTS_KEY)
+
+    EXPECTS_KEY = {"cat", "file", "head", "rm"}
+    EXPECTS_S3_PATH = {"cd", "ls", "ll"}.union(EXPECTS_KEY)
 
     def __init__(self, cli):
         self.cli = cli
@@ -26,7 +27,7 @@ class CliCompleter(object):
         """
         # Single empty command to complete, if we haven't started typing at all
         if not buf:
-            return ['']
+            return [""]
 
         # FIXME: Can we do this analysis more intelligently using shlex.shlex
         # and scanning / tokenising directly?
@@ -37,15 +38,15 @@ class CliCompleter(object):
 
             # Deal with the case where we end with a space, and will want to
             # complete the next argument with an empty string input
-            if buf.endswith(' '):
-                result.append('')
+            if buf.endswith(" "):
+                result.append("")
 
             return result
         except ValueError as e:
             logger.debug(
-                'Error while splitting with shlex: %s, trying with ending '
-                'double-quote',
-                e
+                "Error while splitting with shlex: %s, trying with ending "
+                "double-quote",
+                e,
             )
 
         # Try with an ending double quote to complete an unclosed double-quoted
@@ -58,15 +59,15 @@ class CliCompleter(object):
             return shlex.split(buf + '"')
         except ValueError as e:
             logger.debug(
-                'Still failed splitting with shlex: %s, trying with ending '
-                'single-quote',
-                e
+                "Still failed splitting with shlex: %s, trying with ending "
+                "single-quote",
+                e,
             )
 
         try:
-            return shlex.split(buf + '\'')
+            return shlex.split(buf + "'")
         except ValueError as e:
-            logger.error('Failed last attempt at splitting with shlex: %s', e)
+            logger.error("Failed last attempt at splitting with shlex: %s", e)
             raise
 
     def complete_command(self, cmd, state):
@@ -74,9 +75,7 @@ class CliCompleter(object):
         Complete a command if we're just starting to write a command (i.e.
         no spaces in the command yet)
         """
-        matches = [
-            c for c in self.cli.RECOGNISED_COMMANDS if c.startswith(cmd)
-        ]
+        matches = [c for c in self.cli.RECOGNISED_COMMANDS if c.startswith(cmd)]
         if state < len(matches):
             return matches[state]
 
@@ -100,8 +99,8 @@ class CliCompleter(object):
         """
         # ~ is a special case referring to the root of the current bucket,
         # so just add a forward slash to continue the path from that root
-        if partial == '~':
-            return '~/' if state == 0 else None
+        if partial == "~":
+            return "~/" if state == 0 else None
 
         special_results = []
         search_term = None
@@ -112,17 +111,17 @@ class CliCompleter(object):
         # relative meanings of those terms. In which case, we need to look for
         # files with that prefix in the directory above them, rather than
         # following the relative paths, as well as suggesting ./ or ../
-        if basename in {'.', '..'}:
-            special_results.append(basename + '/')
+        if basename in {".", ".."}:
+            special_results.append(basename + "/")
             search_term = self.cli.normalise_path(os.path.dirname(partial))
             search_term.path = os.path.join(search_term.path, basename)
         else:
             search_term = self.cli.normalise_path(partial)
 
         hits = [
-            shlex.quote(str(r)) for r in self.s3_client.ls(
-                search_term,
-                path_fragment=not partial.endswith('/')
+            shlex.quote(str(r))
+            for r in self.s3_client.ls(
+                search_term, path_fragment=not partial.endswith("/")
             )
             if allow_keys or not r.is_key
         ]
@@ -135,23 +134,18 @@ class CliCompleter(object):
         Autocomplete for an expected local filesystem path
         """
         if os.path.isfile(partial):
-            return (
-                shlex.quote(os.path.basename(partial)) if state == 0 else None
-            )
+            return shlex.quote(os.path.basename(partial)) if state == 0 else None
 
         hits = []
 
-        if partial.endswith('/') and os.path.isdir(partial):
+        if partial.endswith("/") and os.path.isdir(partial):
             hits = os.listdir(partial)
         else:
             parent = os.path.dirname(partial)
             frag = os.path.basename(partial)
 
             if not parent or os.path.isdir(parent):
-                hits = [
-                    h for h in os.listdir(parent or '.')
-                    if h.startswith(frag)
-                ]
+                hits = [h for h in os.listdir(parent or ".") if h.startswith(frag)]
 
         return shlex.quote(hits[state]) if state < len(hits) else None
 
@@ -162,7 +156,7 @@ class CliCompleter(object):
         one we should be completing by the current argument count, ignoring any
         flags.
         """
-        args = [w for w in words[1:] if not w.startswith('-')]
+        args = [w for w in words[1:] if not w.startswith("-")]
         arg_count = len(args)
 
         if s3_first and arg_count == 1 or not s3_first and arg_count == 2:
@@ -190,22 +184,18 @@ class CliCompleter(object):
         if len(words) == 1:
             return self.complete_command(cmd, state)
 
-        if cmd == 'put':
+        if cmd == "put":
             return self.complete_put_get(words, state, s3_first=False)
 
-        if cmd == 'get':
+        if cmd == "get":
             return self.complete_put_get(words, state, s3_first=True)
 
         if cmd in self.EXPECTS_S3_PATH:
-            return self.complete_s3_path(
-                words[-1],
-                state,
-                cmd in self.EXPECTS_KEY
-            )
+            return self.complete_s3_path(words[-1], state, cmd in self.EXPECTS_KEY)
 
         return None
 
     def bind(self):
-        readline.set_completer_delims(' \t\n/;')
-        readline.parse_and_bind('tab: complete')
+        readline.set_completer_delims(" \t\n/;")
+        readline.parse_and_bind("tab: complete")
         readline.set_completer(self.complete)

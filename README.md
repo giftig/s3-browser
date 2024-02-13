@@ -31,18 +31,16 @@ And then run with `s3-browser`.
 
 ### Running tests
 
-Install the project into your virtualenv in development mode:
+This project uses `make` for ease of use. You can install the project in development mode,
+and install the test requirements, using the `install` target:
 
 ```bash
-pip install -e .
+make install
 ```
 
-Then install the test requirements:
+It's recommended to create and activate a virtual environment first. There are a number of ways
+to do that; I like [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/).
 
-```bash
-pip install -r requirements_test.txt
-```
-
-and finally run `./build.sh` to run the full build.
+Use `make` to run the full build.
 
 [usage-1]: readme-resources/usage-1.png "Usage example"
