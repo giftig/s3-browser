@@ -1,9 +1,4 @@
-import unittest
-
-from s3_browser.paths import S3Bucket
-from s3_browser.paths import S3Key
-from s3_browser.paths import S3Path
-from s3_browser.paths import S3Prefix
+from s3_browser.paths import S3Bucket, S3Key, S3Path, S3Prefix
 
 
 def _test_s3_object_api(obj):
@@ -14,64 +9,70 @@ def _test_s3_object_api(obj):
     it in a few ways, and it must render without error both with and
     without a bookmark annotation declared
     """
+
     def basic_checks():
         assert obj.is_key is not None
         assert obj.full_details is not None
         assert obj.path_string is not None
 
     basic_checks()
-    obj.bookmark = 'my_bookmark'
+    obj.bookmark = "my_bookmark"
     basic_checks()
+
 
 def test_s3_path_from_path_string():
     """S3Path should be created properly from various path strings"""
     tests = [
-        ('', S3Path(None, None)),
-        ('/', S3Path(None, None)),
-        ('a/b/c/d/e/f/g', S3Path('a', 'b/c/d/e/f/g')),
-        ('/hodor-hodor', S3Path('hodor-hodor', None)),
-        ('s3://hodor-hodor', S3Path('hodor-hodor', None)),
+        ("", S3Path(None, None)),
+        ("/", S3Path(None, None)),
+        ("a/b/c/d/e/f/g", S3Path("a", "b/c/d/e/f/g")),
+        ("/hodor-hodor", S3Path("hodor-hodor", None)),
+        ("s3://hodor-hodor", S3Path("hodor-hodor", None)),
         (
-            's3://hodorhodor/hodor/hodor/hodor.txt',
-            S3Path('hodorhodor', 'hodor/hodor/hodor.txt')
-        )
+            "s3://hodorhodor/hodor/hodor/hodor.txt",
+            S3Path("hodorhodor", "hodor/hodor/hodor.txt"),
+        ),
     ]
 
     for input, expected in tests:
         assert S3Path.from_path(input) == expected
 
+
 def test_s3_path_short_format():
     """S3Path should render a concise format for ease of use in prompts"""
     tests = [
-        ('/', '/'),
-        ('a/b/c/d/e/f/g', 'a/…/g'),
+        ("/", "/"),
+        ("a/b/c/d/e/f/g", "a/…/g"),
         (
-            'something-pretty-long/middle/end-of-long-thing',
-            'something-pretty-long/…/end-of-long-thing'  # TODO: improve?
+            "something-pretty-long/middle/end-of-long-thing",
+            "something-pretty-long/…/end-of-long-thing",  # TODO: improve?
         ),
-        ('foo/bar', 'foo/bar')
+        ("foo/bar", "foo/bar"),
     ]
 
     for input, expected in tests:
         assert S3Path.from_path(input).short_format == expected
 
+
 def test_s3_bucket_api():
     """S3Bucket should support the defined S3 object API"""
-    bucket = S3Bucket('westeros')
+    bucket = S3Bucket("westeros")
 
     _test_s3_object_api(bucket)
     assert bucket.is_key is False
 
+
 def test_s3_prefix_api():
     """S3Prefix should support the defined S3 object API"""
-    prefix = S3Prefix('winterfell/stark')
+    prefix = S3Prefix("winterfell/stark")
 
     _test_s3_object_api(prefix)
     assert prefix.is_key is False
 
+
 def test_s3_key_api():
     """S3Key should support the defined S3 object API"""
-    key = S3Key('winterfell/stark/arya.json')
+    key = S3Key("winterfell/stark/arya.json")
 
     _test_s3_object_api(key)
     assert key.is_key is True

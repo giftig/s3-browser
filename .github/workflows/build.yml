@@ -11,13 +11,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Install package in dev mode
-        run: pip install -e .
+      - name: Install the project
+        run: make install
+        env:
+          TERM: xterm-256color
 
-      - name: Install test requirements
-        run: pip install -r requirements_test.txt
-
-      - name: Build
-        run: ./build.sh
+      - name: Run the build
+        run: make build
         env:
           TERM: xterm-256color

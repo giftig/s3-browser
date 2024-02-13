@@ -1,12 +1,11 @@
 import shutil
 
-
 # TODO: This could probably be a couple of hundred content types
 _SAFE_CONTENT_TYPE_PREFIXES = [
-    'application/json',
-    'application/xml',
-    'application/yaml',
-    'text/'
+    "application/json",
+    "application/xml",
+    "application/yaml",
+    "text/",
 ]
 
 
@@ -52,7 +51,7 @@ def print_grid(data):
     for i in range(len(data) % num_cols):
         groups[i] += 1
 
-    output = [''] * groups[0]
+    output = [""] * groups[0]
     i = 0
     for g in groups:
         for j in range(g):
@@ -65,16 +64,14 @@ def print_grid(data):
 
 def print_dict(data, indent_level=0):
     """Pretty-print a dict full of key-value metadata pairs"""
-    indent = '  ' * indent_level
+    indent = "  " * indent_level
 
     def _format_key(k):
-        return '{}{}{: <40}{}'.format(
-            indent, '\x1b[36m', k + ':', '\x1b[0m'
-        )
+        return "{}{}{: <40}{}".format(indent, "\x1b[36m", k + ":", "\x1b[0m")
 
     for k, v in sorted(data.items()):
         if not isinstance(v, dict):
-            print('{}{}'.format(_format_key(k), v))
+            print("{}{}".format(_format_key(k), v))
         else:
             print(_format_key(k))
             print_dict(v, indent_level=indent_level + 1)
@@ -88,9 +85,9 @@ def pretty_size(n):
     size = int(n)
     shortened = None
 
-    for suffix in ('B', 'KB', 'MB', 'GB', 'TB'):
-        if size <= 1023 or suffix == 'TB':
-            shortened = '{} {}'.format(round(size), suffix)
+    for suffix in ("B", "KB", "MB", "GB", "TB"):
+        if size <= 1023 or suffix == "TB":
+            shortened = "{} {}".format(round(size), suffix)
             break
 
         size /= 1024
@@ -100,19 +97,19 @@ def pretty_size(n):
 
 def strip_s3_metadata(data):
     """Strip s3 head_object metadata down to the useful stuff"""
-    metadata = data.get('Metadata', {})
-    http_head = data.get('ResponseMetadata', {}).get('HTTPHeaders', {})
+    metadata = data.get("Metadata", {})
+    http_head = data.get("ResponseMetadata", {}).get("HTTPHeaders", {})
 
-    content_length = int(http_head.get('content-length') or 0)
+    content_length = int(http_head.get("content-length") or 0)
     pretty_len = pretty_size(content_length)
     if pretty_len:
-        content_length = '{} ({} bytes)'.format(pretty_len, content_length)
+        content_length = "{} ({} bytes)".format(pretty_len, content_length)
 
     return {
-        'Content-Length': content_length,
-        'Content-Type': http_head.get('content-type'),
-        'Last-Modified': http_head.get('last-modified'),
-        'Metadata': metadata
+        "Content-Length": content_length,
+        "Content-Type": http_head.get("content-type"),
+        "Last-Modified": http_head.get("last-modified"),
+        "Metadata": metadata,
     }
 
 
@@ -127,12 +124,12 @@ def print_object(obj):
     the encoding from the content-type header if provided.
     """
     metadata = strip_s3_metadata(obj)
-    content_type = metadata.get('Content-Type')
+    content_type = metadata.get("Content-Type")
 
     if not _is_safe_content_type(content_type):
         raise ValueError(
             'Refusing to print unsafe content type "{}"'.format(content_type)
         )
 
-    with obj['Body'] as c:
-        print(c.read().decode('utf-8'), end='')
+    with obj["Body"] as c:
+        print(c.read().decode("utf-8"), end="")

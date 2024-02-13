@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class BookmarkManager(object):
-    KEY_REGEX = re.compile('^[a-zA-Z0-9_][a-zA-Z0-9_-]{0,15}$')
+    KEY_REGEX = re.compile("^[a-zA-Z0-9_][a-zA-Z0-9_-]{0,15}$")
 
     def __init__(self, bookmark_file):
         self.bookmark_file = bookmark_file
@@ -30,10 +30,7 @@ class BookmarkManager(object):
         if bookmarks is None:
             return False
 
-        bookmarks[name] = Bookmark(
-            path=str(path),
-            created_on=datetime.datetime.now()
-        )
+        bookmarks[name] = Bookmark(path=str(path), created_on=datetime.datetime.now())
         self._bookmarks = bookmarks
         self.save()
 
@@ -57,7 +54,7 @@ class BookmarkManager(object):
         return bool(cls.KEY_REGEX.match(k))
 
     def clean_data(self, data):
-        bookmarks = data.get('bookmarks', {})
+        bookmarks = data.get("bookmarks", {})
         return {k: Bookmark(**v) for k, v in bookmarks.items()}
 
     def load(self):
@@ -73,33 +70,31 @@ class BookmarkManager(object):
         # Don't try to read something we know isn't present; it's not an error
         # though, we'll try to save an initial copy when we add some bookmarks
         if not os.path.exists(ff):
-            logger.debug('No bookmark file %s, setting empty', ff)
+            logger.debug("No bookmark file %s, setting empty", ff)
             self._bookmarks = {}
             return True
 
         try:
-            with open(ff, 'r') as f:
+            with open(ff, "r") as f:
                 data = self.clean_data(json.load(f))
         except IOError:
-            logger.exception('Error reading bookmark file %s', ff)
+            logger.exception("Error reading bookmark file %s", ff)
         except ValueError:
-            logger.exception('Error reading contents of bookmark file %s', ff)
+            logger.exception("Error reading contents of bookmark file %s", ff)
         except AttributeError:
-            logger.exception('Error with bookmark file format (%s)', ff)
+            logger.exception("Error with bookmark file format (%s)", ff)
         else:
-            logger.debug('Successfully read %d bookmarks', len(data))
+            logger.debug("Successfully read %d bookmarks", len(data))
 
         self._bookmarks = data
         return data is not None
 
     def save(self):
         """Save bookmark data to file"""
-        data = {
-            'bookmarks': {k: v.__dict__ for k, v in self.bookmarks.items()}
-        }
+        data = {"bookmarks": {k: v.__dict__ for k, v in self.bookmarks.items()}}
         data = json.dumps(data)
 
-        with open(self.bookmark_file, 'w') as f:
+        with open(self.bookmark_file, "w") as f:
             f.write(data)
 
 
@@ -111,7 +106,7 @@ class Bookmark(object):
             if isinstance(created_on, str):
                 self.created_on = created_on
             else:
-                self.created_on = created_on.strftime('%Y-%m-%dT%H:%M:%SZ')
+                self.created_on = created_on.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def __str__(self):
         return self.path
