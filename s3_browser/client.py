@@ -109,11 +109,11 @@ class S3Client(object):
             keys = []
 
             for page in paginated_result:
-                prefixes = [
+                prefixes += [
                     paths.S3Prefix(r["Prefix"][search_len:])
                     for r in page.get("CommonPrefixes", [])
                 ]
-                keys = [
+                keys += [
                     paths.S3Key(r["Key"][search_len:], r["LastModified"])
                     for r in page.get("Contents", [])
                     if r["Key"] != search_path

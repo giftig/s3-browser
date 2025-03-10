@@ -13,7 +13,10 @@ install:
 	pip install -r requirements_test.txt
 
 dist:
-	./setup.py sdist && twine check sdist/*
+	./setup.py sdist && twine check dist/*
+
+dist/clean:
+	rm -rf dist/
 
 dist/release:
-	twine upload sdist/*
+	twine upload dist/*
