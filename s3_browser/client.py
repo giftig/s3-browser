@@ -102,19 +102,23 @@ class S3Client(object):
             logger.debug(
                 'Listing objects. full path: "%s", search_path: "%s"', path, search_path
             )
-            # TODO: [ab]use pagination (see boto/boto3#134)
-            res = self.boto.list_objects(
+            paginated_result = self.boto.get_paginator("list_objects").paginate(
                 Bucket=path.bucket, Prefix=search_path, Delimiter="/"
             )
-            prefixes = [
-                paths.S3Prefix(r["Prefix"][search_len:])
-                for r in res.get("CommonPrefixes", [])
-            ]
-            keys = [
-                paths.S3Key(r["Key"][search_len:], r["LastModified"])
-                for r in res.get("Contents", [])
-                if r["Key"] != search_path
-            ]
+            prefixes = []
+            keys = []
+
+            for page in paginated_result:
+                prefixes = [
+                    paths.S3Prefix(r["Prefix"][search_len:])
+                    for r in page.get("CommonPrefixes", [])
+                ]
+                keys = [
+                    paths.S3Key(r["Key"][search_len:], r["LastModified"])
+                    for r in page.get("Contents", [])
+                    if r["Key"] != search_path
+                ]
+
             logger.debug(
                 "results: prefixes: %s -- keys: %s",
                 [str(p) for p in prefixes],
