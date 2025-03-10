@@ -11,3 +11,9 @@ test:
 install:
 	pip install -e .
 	pip install -r requirements_test.txt
+
+dist:
+	./setup.py sdist && twine check sdist/*
+
+dist/release:
+	twine upload sdist/*

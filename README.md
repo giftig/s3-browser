@@ -49,9 +49,4 @@ Use `make` to run the full build.
 
 Create a source distribution with setup.py and upload it to pypi with twine:
 
-```bash
-pip install twine
-./setup.py sdist
-twine check dist/*
-twine upload dist/*
-```
+`make dist && make dist/release`
