@@ -44,3 +44,14 @@ to do that; I like [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/
 Use `make` to run the full build.
 
 [usage-1]: readme-resources/usage-1.png "Usage example"
+
+## Releasing
+
+Create a source distribution with setup.py and upload it to pypi with twine:
+
+```bash
+pip install twine
+./setup.py sdist
+twine check dist/*
+twine upload dist/*
+```
