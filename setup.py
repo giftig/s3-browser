@@ -15,7 +15,7 @@ def readme_content():
 
 setup(
     name="s3_browser",
-    version="0.3.7",
+    version="0.4.0",
     packages=["s3_browser"],
     entry_points={"console_scripts": ["s3-browser=s3_browser.cli:main"]},
     install_requires=["boto3>=1.9.0", "python-magic>=0.4.27"],
