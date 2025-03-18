@@ -19,4 +19,4 @@ dist/clean:
 	rm -rf dist/
 
 dist/release:
-	twine upload dist/*
+	twine upload dist/* --repository s3_browser
