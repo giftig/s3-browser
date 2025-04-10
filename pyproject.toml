@@ -1,0 +1,115 @@
+[project]
+name = "s3_browser"
+version = "0.4.0"
+description = "An interactive tool to browse s3 like a regular directory structure"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["aws", "s3", "browser", "cli", "interactive", "prompt", "s3-browser"]
+authors = [
+  {name = "Rob Moore", email = "giftiger.wunsch@gmail.com"}
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Topic :: Internet",
+  "Topic :: Terminals",
+  "Topic :: Utilities"
+]
+dependencies = [
+    "boto3>=1.9.0",
+    "python-magic>=0.4.27",
+]
+
+[project.urls]
+Repository = "https://github.com/giftig/s3-browser/"
+
+[project.scripts]
+s3-browser = "s3_browser.cli:main"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "coverage>=4.5.0",
+    "pytest-cov>=4.0.0",
+    "pytest>=7.2.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "A",
+    "ANN",
+    "ASYNC",
+    "B",
+    "BLE",
+    "C4",
+    "C90",
+    "COM",
+    "DJ",
+    "DTZ",
+    "E",
+    "EM",
+    "ERA",
+    "EXE",
+    "F",
+    "FA",
+    "FBT",
+    "FLY",
+    "G",
+    "I",
+    "ICN",
+    "INT",
+    "N",
+    "PD",
+    "PERF",
+    "PGH",
+    "PL",
+    "PTH",
+    "Q",
+    "RET",
+    "RSE",
+    "RUF",
+    "S",
+    "SIM",
+    "SLF",
+    "SLOT",
+    "T10",
+    "T20",
+    "TCH",
+    "TID",
+    "TRY",
+    "UP",
+    "W",
+    "YTT",
+    'INP',
+    'ISC',
+    'PIE',
+    'PT',
+    'PYI',
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.isort]
+case-sensitive = true
+
+[tool.setuptools]
+packages = ["s3_browser"]
+
+[tool.uv]
+

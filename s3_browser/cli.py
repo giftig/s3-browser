@@ -76,9 +76,7 @@ class Cli(object):
     def normalise_path(self, path):
         # Render variables present in the path
         context = (
-            {}
-            if not self.bookmarks
-            else {k: v.path for k, v in self.bookmarks.bookmarks.items()}
+            {} if not self.bookmarks else {k: v.path for k, v in self.bookmarks.bookmarks.items()}
         )
         path = tokeniser.render(tokeniser.tokenise(path), context)
 

@@ -46,9 +46,7 @@ class S3Client(object):
         next_path = path
 
         while True:
-            cache_keys.extend(
-                [(next_path.canonical, True), (next_path.canonical, False)]
-            )
+            cache_keys.extend([(next_path.canonical, True), (next_path.canonical, False)])
 
             next = os.path.dirname(next_path.path)
             if next == next_path.path:
@@ -81,8 +79,7 @@ class S3Client(object):
             if not path.bucket or not path.path and path_fragment:
                 logger.debug("Listing buckets")
                 res = [
-                    paths.S3Bucket(b["Name"])
-                    for b in self.boto.list_buckets().get("Buckets", [])
+                    paths.S3Bucket(b["Name"]) for b in self.boto.list_buckets().get("Buckets", [])
                 ]
                 if path.bucket:
                     logger.debug('Trimming bucket list: "%s"', path.bucket)
@@ -99,9 +96,7 @@ class S3Client(object):
             last_slash = search_path.rfind("/")
             search_len = last_slash + 1 if last_slash != -1 else 0
 
-            logger.debug(
-                'Listing objects. full path: "%s", search_path: "%s"', path, search_path
-            )
+            logger.debug('Listing objects. full path: "%s", search_path: "%s"', path, search_path)
             paginated_result = self.boto.get_paginator("list_objects").paginate(
                 Bucket=path.bucket, Prefix=search_path, Delimiter="/"
             )
@@ -110,8 +105,7 @@ class S3Client(object):
 
             for page in paginated_result:
                 prefixes += [
-                    paths.S3Prefix(r["Prefix"][search_len:])
-                    for r in page.get("CommonPrefixes", [])
+                    paths.S3Prefix(r["Prefix"][search_len:]) for r in page.get("CommonPrefixes", [])
                 ]
                 keys += [
                     paths.S3Key(r["Key"][search_len:], r["LastModified"])
