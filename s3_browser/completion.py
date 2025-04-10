@@ -44,8 +44,7 @@ class CliCompleter(object):
             return result
         except ValueError as e:
             logger.debug(
-                "Error while splitting with shlex: %s, trying with ending "
-                "double-quote",
+                "Error while splitting with shlex: %s, trying with ending double-quote",
                 e,
             )
 
@@ -59,8 +58,7 @@ class CliCompleter(object):
             return shlex.split(buf + '"')
         except ValueError as e:
             logger.debug(
-                "Still failed splitting with shlex: %s, trying with ending "
-                "single-quote",
+                "Still failed splitting with shlex: %s, trying with ending single-quote",
                 e,
             )
 
@@ -120,9 +118,7 @@ class CliCompleter(object):
 
         hits = [
             shlex.quote(str(r))
-            for r in self.s3_client.ls(
-                search_term, path_fragment=not partial.endswith("/")
-            )
+            for r in self.s3_client.ls(search_term, path_fragment=not partial.endswith("/"))
             if allow_keys or not r.is_key
         ]
 

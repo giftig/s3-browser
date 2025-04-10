@@ -143,16 +143,12 @@ class S3Key(object):
 
     def __init__(self, key, updated_on=None):
         self.key = key
-        self.updated_on = (
-            updated_on.strftime("%Y-%m-%d %H:%M:%S") if updated_on else None
-        )
+        self.updated_on = updated_on.strftime("%Y-%m-%d %H:%M:%S") if updated_on else None
         self.is_key = True
 
     @property
     def full_details(self):
-        return "{updated_on: >19} {key}".format(
-            updated_on=self.updated_on or "", key=self.key
-        )
+        return "{updated_on: >19} {key}".format(updated_on=self.updated_on or "", key=self.key)
 
     @property
     def path_string(self):

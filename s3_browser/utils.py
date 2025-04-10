@@ -127,9 +127,7 @@ def print_object(obj):
     content_type = metadata.get("Content-Type")
 
     if not _is_safe_content_type(content_type):
-        raise ValueError(
-            'Refusing to print unsafe content type "{}"'.format(content_type)
-        )
+        raise ValueError('Refusing to print unsafe content type "{}"'.format(content_type))
 
     with obj["Body"] as c:
         print(c.read().decode("utf-8"), end="")

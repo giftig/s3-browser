@@ -1,12 +1,6 @@
 import pytest
 
-from s3_browser.tokeniser import (
-    RawString as S,
-    render,
-    Token as T,
-    tokenise,
-    TokeniserException
-)
+from s3_browser.tokeniser import RawString as S, render, Token as T, tokenise, TokeniserException
 
 
 def test_tokeniser():

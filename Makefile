@@ -2,21 +2,19 @@ build: fmt
 build: test
 
 fmt:
-	black . && flake8 . && isort .
+	ruff format
 
 test:
-	pytest --cov=s3_browser
-
+	uv run pytest --cov=s3_browser
 
 install:
-	pip install -e .
-	pip install -r requirements_test.txt
+	uv sync
 
 dist:
-	./setup.py sdist && twine check dist/*
+	uv build
 
 dist/clean:
 	rm -rf dist/
 
 dist/release:
-	twine upload dist/* --repository s3_browser
+	uv publish
