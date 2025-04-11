@@ -1,6 +1,6 @@
 import os
 import shlex
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 from s3_browser.cli import Cli
 from s3_browser.completion import CliCompleter
@@ -85,6 +85,33 @@ class TestCompletion:
         for i, f in enumerate(files):
             assert self._complete(completer, mock, "put ", i) == f
             assert self._complete(completer, mock, "get . ", i) == f
+
+    @patch("readline.get_line_buffer")
+    @patch("os.path.expanduser")
+    def test_complete_local_path_tilde(self, mock_expanduser, mock_readline):
+        """Should replace a lone ~ with the home dir path"""
+        completer = self._completer()
+
+        mock_expanduser.return_value = "/home/ash"
+
+        assert self._complete(completer, mock_readline, "put ~", 0) == "/home/ash"
+        assert self._complete(completer, mock_readline, "get . ~", 0) == "/home/ash"
+        assert self._complete(completer, mock_readline, "put ~", 1) is None
+        assert self._complete(completer, mock_readline, "get . ~", 1) is None
+
+    @patch("readline.get_line_buffer")
+    @patch("os.path.expanduser")
+    def test_complete_local_path_tilde_path(self, mock_expanduser, mock_readline):
+        """Should complete paths containing ~ as home dir"""
+        completer = self._completer()
+
+        mock_expanduser.return_value = "./"
+
+        files = [shlex.quote(f) for f in os.listdir(".")]
+        for i, f in enumerate(files):
+            assert self._complete(completer, mock_readline, "put ~/", i) == f
+            assert self._complete(completer, mock_readline, "get . ~/", i) == f
+            mock_expanduser.assert_has_calls([call("~/"), call("~/")])
 
     @patch("readline.get_line_buffer")
     def test_complete_paths_with_quotes(self, mock):

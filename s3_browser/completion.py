@@ -129,6 +129,12 @@ class CliCompleter(object):
         """
         Autocomplete for an expected local filesystem path
         """
+        # Expand users and do nothing further if ~ or ~user is provided alone
+        if "~" in partial and "/" not in partial:
+            return os.path.expanduser(partial) if state == 0 else None
+
+        partial = os.path.expanduser(partial)
+
         if os.path.isfile(partial):
             return shlex.quote(os.path.basename(partial)) if state == 0 else None
 
