@@ -3,10 +3,11 @@
 import argparse
 import logging
 import os
-import readline
 import shlex
 import sys
 import textwrap
+
+import gnureadline as readline
 
 from s3_browser import bookmarks, client, completion, paths, tokeniser, utils
 from s3_browser.argparse import ArgumentParser as SafeParser

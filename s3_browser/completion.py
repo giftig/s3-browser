@@ -1,7 +1,8 @@
 import logging
 import os
-import readline
 import shlex
+
+import gnureadline as readline
 
 logger = logging.getLogger(__name__)
 

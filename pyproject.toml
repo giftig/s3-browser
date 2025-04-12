@@ -24,6 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "boto3>=1.9.0",
+    "gnureadline>=8.2.13",
     "python-magic>=0.4.27",
 ]
 
