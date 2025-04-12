@@ -94,10 +94,16 @@ class Token(object):
     def __init__(self, name):
         self.name = name
 
+    def __eq__(self, other):
+        return self.name == other.name
+
 
 class RawString(object):
     def __init__(self, value):
         self.value = value
+
+    def __eq__(self, other):
+        return self.value == other.value
 
 
 class TokeniserException(Exception):

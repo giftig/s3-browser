@@ -24,7 +24,7 @@ class TestCompletion:
         get_line_buffer.reset_mock()
         return res
 
-    @patch("readline.get_line_buffer")
+    @patch("gnureadline.get_line_buffer")
     def test_complete_empty_command(self, mock):
         """Tab on an empty string should list all commands"""
         completer = self._completer()
@@ -32,7 +32,7 @@ class TestCompletion:
         for i, cmd in enumerate(Cli.RECOGNISED_COMMANDS):
             assert self._complete(completer, mock, "", i) == cmd
 
-    @patch("readline.get_line_buffer")
+    @patch("gnureadline.get_line_buffer")
     def test_complete_partial_command(self, mock):
         completer = self._completer()
         assert self._complete(completer, mock, "c", 0) == "cat"
@@ -40,7 +40,7 @@ class TestCompletion:
         assert self._complete(completer, mock, "c", 2) == "clear"
         assert self._complete(completer, mock, "bo", 0) == "bookmark"
 
-    @patch("readline.get_line_buffer")
+    @patch("gnureadline.get_line_buffer")
     def test_complete_s3_path_commands(self, mock):
         """Tab on several commands should complete S3 paths or keys"""
         completer = self._completer()
@@ -76,7 +76,7 @@ class TestCompletion:
         for i, f in enumerate(["../"] + expected_files):
             assert self._complete(completer, mock, "cat ..", i) == f
 
-    @patch("readline.get_line_buffer")
+    @patch("gnureadline.get_line_buffer")
     def test_complete_local_path(self, mock):
         """Tab on put should complete s3 path or local path arguments"""
         completer = self._completer()
@@ -86,7 +86,7 @@ class TestCompletion:
             assert self._complete(completer, mock, "put ", i) == f
             assert self._complete(completer, mock, "get . ", i) == f
 
-    @patch("readline.get_line_buffer")
+    @patch("gnureadline.get_line_buffer")
     @patch("os.path.expanduser")
     def test_complete_local_path_tilde(self, mock_expanduser, mock_readline):
         """Should replace a lone ~ with the home dir path"""
@@ -99,7 +99,7 @@ class TestCompletion:
         assert self._complete(completer, mock_readline, "put ~", 1) is None
         assert self._complete(completer, mock_readline, "get . ~", 1) is None
 
-    @patch("readline.get_line_buffer")
+    @patch("gnureadline.get_line_buffer")
     @patch("os.path.expanduser")
     def test_complete_local_path_tilde_path(self, mock_expanduser, mock_readline):
         """Should complete paths containing ~ as home dir"""
@@ -113,7 +113,7 @@ class TestCompletion:
             assert self._complete(completer, mock_readline, "get . ~/", i) == f
             mock_expanduser.assert_has_calls([call("~/"), call("~/")])
 
-    @patch("readline.get_line_buffer")
+    @patch("gnureadline.get_line_buffer")
     def test_complete_paths_with_quotes(self, mock):
         """Tab complete should work where paths need quoting"""
         completer = self._completer()

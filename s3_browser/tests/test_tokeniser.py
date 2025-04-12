@@ -3,9 +3,9 @@ import pytest
 from s3_browser.tokeniser import RawString as S, render, Token as T, tokenise, TokeniserException
 
 
-def test_tokeniser():
-    """Test that the tokeniser works for various variable combinations"""
-    tests = (
+@pytest.mark.parametrize(
+    "input,expected",
+    [
         ("literal string ok", [S("literal string ok")]),
         ("   whitespacey   ", [S("   whitespacey   ")]),
         (r"\\\\", [S(r"\\\\")]),
@@ -21,13 +21,13 @@ def test_tokeniser():
             [T("$$$inside all is literal$$$"), T("")],
         ),
         ("end on a $", [S("end on a ")]),
-    )
+    ]
+)
+def test_tokeniser(input, expected):
+    """Test that the tokeniser works for various variable combinations"""
+    actual = tokenise(input)
 
-    for t in tests:
-        actual = [e.__dict__ for e in tokenise(t[0])]
-        expected = [e.__dict__ for e in t[1]]
-
-        assert actual == expected
+    assert actual == expected
 
 
 def test_tokeniser_failures():
