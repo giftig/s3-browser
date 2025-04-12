@@ -45,6 +45,17 @@ Use `make` to run the full build.
 
 [usage-1]: readme-resources/usage-1.png "Usage example"
 
+### Testing against minio
+
+You can test against [minio](https://github.com/minio/minio) by running `make bootstrap` to start
+a minio container and create a test bucket. You can then connect to it with:
+
+```bash
+export AWS_ACCESS_KEY_ID=minio
+export AWS_SECRET_ACCESS_KEY=minio123
+uv run s3-browser --endpoint http://localhost:19000
+```
+
 ## Releasing
 
 Create a source distribution with setup.py and upload it to pypi with twine:

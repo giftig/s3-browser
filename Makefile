@@ -1,6 +1,9 @@
 build: fmt
 build: test
 
+bootstrap:
+	@scripts/bootstrap.sh
+
 fmt:
 	ruff format
 
