@@ -1,6 +1,8 @@
 import pytest
 
-from s3_browser.tokeniser import RawString as S, render, Token as T, tokenise, TokeniserException
+from s3_browser.tokeniser import RawString as S
+from s3_browser.tokeniser import Token as T
+from s3_browser.tokeniser import TokeniserException, render, tokenise
 
 
 @pytest.mark.parametrize(
@@ -21,7 +23,7 @@ from s3_browser.tokeniser import RawString as S, render, Token as T, tokenise, T
             [T("$$$inside all is literal$$$"), T("")],
         ),
         ("end on a $", [S("end on a ")]),
-    ]
+    ],
 )
 def test_tokeniser(input, expected):
     """Test that the tokeniser works for various variable combinations"""

@@ -5,6 +5,8 @@ bootstrap:
 	@scripts/bootstrap.sh
 
 fmt:
+	# Fix up imports
+	ruff check --select I,F401 --fix
 	ruff format
 
 test:
