@@ -7,7 +7,7 @@ import gnureadline as readline
 logger = logging.getLogger(__name__)
 
 
-class CliCompleter(object):
+class CliCompleter:
     """
     Tab-complete functionality for the cli
     """

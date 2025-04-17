@@ -15,7 +15,7 @@ from s3_browser.argparse import ArgumentParser as SafeParser
 logger = logging.getLogger(__name__)
 
 
-class Cli(object):
+class Cli:
     DEFAULT_PS1 = "s3://\001\x1b[36m\002{path_short}\001\x1b[0m\002> "
     SPLASH = textwrap.dedent(
         """
@@ -72,7 +72,7 @@ class Cli(object):
     @staticmethod
     def _err(msg):
         """Print a message in red"""
-        print("\x1b[31m{}\x1b[0m".format(msg), file=sys.stderr)
+        print(f"\x1b[31m{msg}\x1b[0m", file=sys.stderr)
 
     def normalise_path(self, path):
         # Render variables present in the path
@@ -86,7 +86,7 @@ class Cli(object):
             path = path[5:]
 
         # Special case: ~ refers to the root of the current bucket
-        if path == "~" or path == "~/":
+        if path in {"~", "~/"}:
             return paths.S3Path(bucket=self.current_path.bucket, path=None)
 
         path = os.path.join("/" + str(self.current_path), path)
@@ -99,7 +99,7 @@ class Cli(object):
             self.current_path = full_path
             return True
 
-        self._err("cannot access '{}': no such s3 directory".format(path))
+        self._err(f"cannot access '{path}': no such s3 directory")
         return False
 
     def ls(self, *args):
@@ -195,13 +195,13 @@ class Cli(object):
 
     def add_bookmark(self, name, path):
         if not bookmarks.BookmarkManager.validate_key(name):
-            self._err("{} is an invalid name for a bookmark".format(name))
+            self._err(f"{name} is an invalid name for a bookmark")
             return
 
         path = self.normalise_path(path)
 
         if not self.client.is_path(path):
-            self._err("cannot bookmark '{}': not an s3 directory".format(path))
+            self._err(f"cannot bookmark '{path}': not an s3 directory")
             return
 
         if not self.bookmarks.add_bookmark(name, path):
@@ -210,14 +210,14 @@ class Cli(object):
 
     def remove_bookmark(self, name):
         if not self.bookmarks.remove_bookmark(name):
-            self._err("{} is not the name of a bookmark".format(name))
+            self._err(f"{name} is not the name of a bookmark")
             return False
 
         return True
 
     def list_bookmarks(self):
         for k, v in self.bookmarks.bookmarks.items():
-            print("\x1b[33m${: <18}\x1b[0m {}".format(k, str(v)))
+            print(f"\x1b[33m${k: <18}\x1b[0m {str(v)}")
 
     def bookmark_help(self):
         print(
@@ -246,7 +246,7 @@ class Cli(object):
         }.get(op)
 
         if not f:
-            self._err("Bad operation '{}'. Try help for correct usage".format(op))
+            self._err(f"Bad operation '{op}'. Try help for correct usage")
             return
 
         return f(*args)
@@ -260,7 +260,7 @@ class Cli(object):
         data = self.client.head(key)
         data = utils.strip_s3_metadata(data)
 
-        print("\x1b[33m{}\x1b[0m".format(key.canonical))
+        print(f"\x1b[33m{key.canonical}\x1b[0m")
         print()
         utils.print_dict(data)
 
@@ -320,7 +320,7 @@ class Cli(object):
 
     def clear_cache(self):
         size = self.client.clear_cache()
-        print("Cleared {} cached paths.".format(size))
+        print(f"Cleared {size} cached paths.")
 
     def prompt(self):
         cmd = shlex.split(input(self._render_prompt()))
@@ -350,7 +350,7 @@ class Cli(object):
         }.get(cmd[0])
 
         if not func:
-            self._err("Unrecognised command: '{}'".format(cmd[0]))
+            self._err(f"Unrecognised command: '{cmd[0]}'")
             return
 
         try:

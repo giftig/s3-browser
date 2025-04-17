@@ -1,4 +1,4 @@
-def tokenise(s):
+def tokenise(s):  # noqa: C901, PLR0912
     """Breaks a string down into variable tokens"""
     acc = []
     curr = ""
@@ -83,14 +83,14 @@ def render(tokens, context):
             continue
 
         if t.name not in context:
-            raise TokeniserException("Unknown token '{}'".format(t.name))
+            raise TokeniserException(f"Unknown token '{t.name}'")
 
         acc += context[t.name]
 
     return acc
 
 
-class Token(object):
+class Token:
     def __init__(self, name):
         self.name = name
 
@@ -98,7 +98,7 @@ class Token(object):
         return self.name == other.name
 
 
-class RawString(object):
+class RawString:
     def __init__(self, value):
         self.value = value
 

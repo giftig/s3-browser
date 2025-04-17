@@ -9,7 +9,7 @@ from s3_browser import paths
 logger = logging.getLogger(__name__)
 
 
-class S3Client(object):
+class S3Client:
     """
     Encapsulates all the functionality required of the s3 browser, wrapping
     the boto s3 client and adding memoisation and a more concise and path-like

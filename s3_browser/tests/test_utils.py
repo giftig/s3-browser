@@ -21,7 +21,7 @@ class UtilsTest(unittest.TestCase):
 
         for v, expected in cases:
             actual = utils.pretty_size(v)
-            self.assertEqual(actual, expected)
+            assert actual == expected
 
     def test_strip_s3_metadata(self):
         """Test that full s3 metadata is correctly stripped to essentials"""
@@ -62,4 +62,4 @@ class UtilsTest(unittest.TestCase):
 
         actual = utils.strip_s3_metadata(data)
 
-        self.assertEqual(actual, expected)
+        assert actual == expected

@@ -7,7 +7,7 @@ import re
 logger = logging.getLogger(__name__)
 
 
-class BookmarkManager(object):
+class BookmarkManager:
     KEY_REGEX = re.compile("^[a-zA-Z0-9_][a-zA-Z0-9_-]{0,15}$")
 
     def __init__(self, bookmark_file):
@@ -75,9 +75,9 @@ class BookmarkManager(object):
             return True
 
         try:
-            with open(ff, "r") as f:
+            with open(ff) as f:
                 data = self.clean_data(json.load(f))
-        except IOError:
+        except OSError:
             logger.exception("Error reading bookmark file %s", ff)
         except ValueError:
             logger.exception("Error reading contents of bookmark file %s", ff)
@@ -98,7 +98,7 @@ class BookmarkManager(object):
             f.write(data)
 
 
-class Bookmark(object):
+class Bookmark:
     def __init__(self, path, created_on=None, *args, **kwargs):
         self.path = path
 

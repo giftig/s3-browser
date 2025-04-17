@@ -52,7 +52,6 @@ target-version = "py313"
 [tool.ruff.lint]
 select = [
     "A",
-    "ANN",
     "ASYNC",
     "B",
     "BLE",
@@ -62,7 +61,6 @@ select = [
     "DJ",
     "DTZ",
     "E",
-    "EM",
     "ERA",
     "EXE",
     "F",
@@ -78,7 +76,6 @@ select = [
     "PERF",
     "PGH",
     "PL",
-    "PTH",
     "Q",
     "RET",
     "RSE",
@@ -91,7 +88,6 @@ select = [
     "T20",
     "TCH",
     "TID",
-    "TRY",
     "UP",
     "W",
     "YTT",
@@ -102,9 +98,24 @@ select = [
     'PYI',
 ]
 
+ignore = [
+  "PLR2004",
+  "N818", # "Exception" suffix is fine imo
+  "T201"  # print: an interactive cli tool needs to print
+]
+
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 unfixable = []
+
+[tool.ruff.lint.extend-per-file-ignores]
+"s3_browser/tests/**/*.py" = [
+    "ARG",
+    "FBT",
+    "PLR2004",
+    "S101",
+    "S311",
+]
 
 [tool.ruff.lint.isort]
 case-sensitive = true

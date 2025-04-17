@@ -71,7 +71,7 @@ def print_dict(data, indent_level=0):
 
     for k, v in sorted(data.items()):
         if not isinstance(v, dict):
-            print("{}{}".format(_format_key(k), v))
+            print(f"{_format_key(k)}{v}")
         else:
             print(_format_key(k))
             print_dict(v, indent_level=indent_level + 1)
@@ -87,7 +87,7 @@ def pretty_size(n):
 
     for suffix in ("B", "KB", "MB", "GB", "TB"):
         if size <= 1023 or suffix == "TB":
-            shortened = "{} {}".format(round(size), suffix)
+            shortened = f"{round(size)} {suffix}"
             break
 
         size /= 1024
@@ -103,7 +103,7 @@ def strip_s3_metadata(data):
     content_length = int(http_head.get("content-length") or 0)
     pretty_len = pretty_size(content_length)
     if pretty_len:
-        content_length = "{} ({} bytes)".format(pretty_len, content_length)
+        content_length = f"{pretty_len} ({content_length} bytes)"
 
     return {
         "Content-Length": content_length,
@@ -127,7 +127,7 @@ def print_object(obj):
     content_type = metadata.get("Content-Type")
 
     if not _is_safe_content_type(content_type):
-        raise ValueError('Refusing to print unsafe content type "{}"'.format(content_type))
+        raise ValueError(f'Refusing to print unsafe content type "{content_type}"')
 
     with obj["Body"] as c:
         print(c.read().decode("utf-8"), end="")

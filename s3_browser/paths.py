@@ -8,10 +8,10 @@ def _annotate_bookmark(label, bookmark=None):
     if not bookmark:
         return label
 
-    return "\x1b[33m${}\x1b[0m {}".format(bookmark, label)
+    return f"\x1b[33m${bookmark}\x1b[0m {label}"
 
 
-class S3Path(object):
+class S3Path:
     """
     Represents a combination of bucket and absolute path within that bucket.
 
@@ -20,7 +20,7 @@ class S3Path(object):
 
     def __init__(self, bucket, path):
         self.bucket = bucket
-        self.path = os.path.realpath("/{}".format(path))[1:] if path else None
+        self.path = os.path.realpath(f"/{path}")[1:] if path else None
         self.name = self.path.split("/")[-1] or None if self.path else None
 
     @staticmethod
@@ -42,7 +42,7 @@ class S3Path(object):
             return "/"
 
         if self.path and "/" in self.path:
-            return "{}/…/{}".format(self.bucket, self.name)
+            return f"{self.bucket}/…/{self.name}"
 
         return "{}/{}".format(self.bucket, self.path or "")
 
@@ -64,7 +64,7 @@ class S3Path(object):
         return "/{}/{}".format(self.bucket, self.path or "")
 
 
-class S3Bucket(object):
+class S3Bucket:
     """
     Simple representation of a bucket
 
@@ -84,7 +84,7 @@ class S3Bucket(object):
         Designed to line up with S3Key's implementation of the same method
         """
         label = _annotate_bookmark("BUCKET", self.bookmark)
-        return "{: >19} {}".format(label, self.bucket)
+        return f"{label: >19} {self.bucket}"
 
     @property
     def path_string(self):
@@ -97,7 +97,7 @@ class S3Bucket(object):
         return self.bucket
 
 
-class S3Prefix(object):
+class S3Prefix:
     """
     Simple representation of an S3 prefix and associated metadata
 
@@ -119,7 +119,7 @@ class S3Prefix(object):
         Designed to line up with S3Key's implementation of the same method
         """
         label = _annotate_bookmark("PREFIX", self.bookmark)
-        return "{: >19} {}".format(label, self.prefix)
+        return f"{label: >19} {self.prefix}"
 
     @property
     def path_string(self):
@@ -132,7 +132,7 @@ class S3Prefix(object):
         return self.prefix
 
 
-class S3Key(object):
+class S3Key:
     """
     Representation of an S3 key and associated metadata
 

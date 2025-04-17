@@ -32,7 +32,7 @@ class TestBookmarks:
 
     @classmethod
     def gen_filename(cls):
-        return "/tmp/{}{}.json".format(cls.FILE_PREFIX, uuid.uuid4())
+        return f"/tmp/{cls.FILE_PREFIX}{uuid.uuid4()}.json"
 
     @property
     def expected_bookmarks(self):
@@ -102,7 +102,7 @@ class TestBookmarks:
         actual = self.normalise_bookmarks(manager.bookmarks)
         assert actual == self.expected_bookmarks
 
-        for b in self.data["bookmarks"].keys():
+        for b in self.data["bookmarks"]:
             manager.remove_bookmark(b) is True
 
         actual = self.normalise_bookmarks(manager.bookmarks)
