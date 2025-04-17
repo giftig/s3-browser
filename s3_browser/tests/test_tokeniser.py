@@ -1,3 +1,4 @@
+# ruff: noqa: N817
 import pytest
 
 from s3_browser.tokeniser import RawString as S
@@ -6,7 +7,7 @@ from s3_browser.tokeniser import TokeniserException, render, tokenise
 
 
 @pytest.mark.parametrize(
-    "input,expected",
+    ("value", "expected"),
     [
         ("literal string ok", [S("literal string ok")]),
         ("   whitespacey   ", [S("   whitespacey   ")]),
@@ -25,9 +26,9 @@ from s3_browser.tokeniser import TokeniserException, render, tokenise
         ("end on a $", [S("end on a ")]),
     ],
 )
-def test_tokeniser(input, expected):
+def test_tokeniser(value, expected):
     """Test that the tokeniser works for various variable combinations"""
-    actual = tokenise(input)
+    actual = tokenise(value)
 
     assert actual == expected
 

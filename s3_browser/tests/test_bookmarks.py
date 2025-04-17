@@ -103,7 +103,7 @@ class TestBookmarks:
         assert actual == self.expected_bookmarks
 
         for b in self.data["bookmarks"]:
-            manager.remove_bookmark(b) is True
+            assert manager.remove_bookmark(b) is True
 
         actual = self.normalise_bookmarks(manager.bookmarks)
         assert actual == {}

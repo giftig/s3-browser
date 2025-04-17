@@ -217,7 +217,7 @@ class Cli:
 
     def list_bookmarks(self):
         for k, v in self.bookmarks.bookmarks.items():
-            print(f"\x1b[33m${k: <18}\x1b[0m {str(v)}")
+            print(f"\x1b[33m${k: <18}\x1b[0m {v}")
 
     def bookmark_help(self):
         print(
@@ -235,7 +235,7 @@ class Cli:
     def bookmark(self, op, *args):
         if not self.bookmarks:
             self._err("Bookmarks are unavailable")
-            return
+            return None
 
         f = {
             "add": self.add_bookmark,
@@ -247,7 +247,7 @@ class Cli:
 
         if not f:
             self._err(f"Bad operation '{op}'. Try help for correct usage")
-            return
+            return None
 
         return f(*args)
 
@@ -378,7 +378,7 @@ class Cli:
 
 def configure_debug_logging():
     logging.basicConfig(
-        filename="/tmp/s3_browser.log",
+        filename="/tmp/s3_browser.log",  # noqa: S108
         format="%(asctime)s %(levelname)s %(module)s:%(funcName)s %(message)s",
         level=logging.INFO,
     )

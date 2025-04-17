@@ -14,11 +14,8 @@ def _is_safe_content_type(ct):
     if not ct:
         return False
 
-    for prefix in _SAFE_CONTENT_TYPE_PREFIXES:
-        if ct.startswith(prefix):
-            return True
 
-    return False
+    return any(ct.startswith(prefix) for prefix in _SAFE_CONTENT_TYPE_PREFIXES)
 
 
 def print_grid(data):

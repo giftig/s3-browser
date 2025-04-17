@@ -1,3 +1,5 @@
+import pytest
+
 from s3_browser.paths import S3Bucket, S3Key, S3Path, S3Prefix
 
 
@@ -20,9 +22,9 @@ def _test_s3_object_api(obj):
     basic_checks()
 
 
-def test_s3_path_from_path_string():
-    """S3Path should be created properly from various path strings"""
-    tests = [
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
         ("", S3Path(None, None)),
         ("/", S3Path(None, None)),
         ("a/b/c/d/e/f/g", S3Path("a", "b/c/d/e/f/g")),
@@ -33,14 +35,15 @@ def test_s3_path_from_path_string():
             S3Path("hodorhodor", "hodor/hodor/hodor.txt"),
         ),
     ]
+)
+def test_s3_path_from_path_string(value, expected):
+    """S3Path should be created properly from various path strings"""
+    assert S3Path.from_path(value) == expected
 
-    for input, expected in tests:
-        assert S3Path.from_path(input) == expected
 
-
-def test_s3_path_short_format():
-    """S3Path should render a concise format for ease of use in prompts"""
-    tests = [
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
         ("/", "/"),
         ("a/b/c/d/e/f/g", "a/…/g"),
         (
@@ -49,9 +52,10 @@ def test_s3_path_short_format():
         ),
         ("foo/bar", "foo/bar"),
     ]
-
-    for input, expected in tests:
-        assert S3Path.from_path(input).short_format == expected
+)
+def test_s3_path_short_format(value, expected):
+    """S3Path should render a concise format for ease of use in prompts"""
+    assert S3Path.from_path(value).short_format == expected
 
 
 def test_s3_bucket_api():

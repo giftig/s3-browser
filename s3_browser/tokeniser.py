@@ -108,4 +108,4 @@ class RawString:
 
 class TokeniserException(Exception):
     def __init__(self, msg):
-        super(TokeniserException, self).__init__(msg)
+        super().__init__(msg)

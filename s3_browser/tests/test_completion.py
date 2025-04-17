@@ -70,10 +70,10 @@ class TestCompletion:
         # . and .. should suggest the relative dirs and also any s3 key hits
         # Note that it'd be limited to dot-prefixed paths in reality, but our
         # mock always returns expected_files for a key search in this case
-        for i, f in enumerate(["./"] + expected_files):
+        for i, f in enumerate(["./", *expected_files]):
             assert self._complete(completer, mock, "cat .", i) == f
 
-        for i, f in enumerate(["../"] + expected_files):
+        for i, f in enumerate(["../", *expected_files]):
             assert self._complete(completer, mock, "cat ..", i) == f
 
     @patch("gnureadline.get_line_buffer")
