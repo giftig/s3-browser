@@ -14,7 +14,6 @@ def _is_safe_content_type(ct):
     if not ct:
         return False
 
-
     return any(ct.startswith(prefix) for prefix in _SAFE_CONTENT_TYPE_PREFIXES)
 
 
@@ -128,3 +127,32 @@ def print_object(obj):
 
     with obj["Body"] as c:
         print(c.read().decode("utf-8"), end="")
+
+
+def get_readline():
+    """
+    Thanks to a combination of GNU licensing concerns, changing APIs between python versions, and
+    incompatibility between readline backends, using readline has become much harder than it should
+    be.
+
+    This project was built with GNU readline but the backend in later python versions, or on some
+    platforms, or when using uv run, may be swapped with libedit. There's also a gnureadline
+    python package for forcing the use of GNU readline, but that doesn't seem to respect ~/.inputrc
+    and has some different behaviours which are breaking the prompt, e.g. horizontal-scroll-mode
+    seems to default to on and can't be changed.
+
+    Therefore we prefer built-in readline, but need to use different methods to check if the
+    backend is GNU readline py3.12 vs py3.13, and if the backend is libedit, fall back to the
+    gnureadline package instead
+    """
+    import readline
+
+    if getattr(readline, "backend", None) == "readline":
+        return readline
+
+    if "libedit" in readline.__doc__:
+        import gnureadline
+
+        return gnureadline
+
+    return readline

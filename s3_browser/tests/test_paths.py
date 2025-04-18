@@ -34,7 +34,7 @@ def _test_s3_object_api(obj):
             "s3://hodorhodor/hodor/hodor/hodor.txt",
             S3Path("hodorhodor", "hodor/hodor/hodor.txt"),
         ),
-    ]
+    ],
 )
 def test_s3_path_from_path_string(value, expected):
     """S3Path should be created properly from various path strings"""
@@ -51,7 +51,7 @@ def test_s3_path_from_path_string(value, expected):
             "something-pretty-long/…/end-of-long-thing",  # TODO: improve?
         ),
         ("foo/bar", "foo/bar"),
-    ]
+    ],
 )
 def test_s3_path_short_format(value, expected):
     """S3Path should render a concise format for ease of use in prompts"""

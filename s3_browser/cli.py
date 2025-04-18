@@ -8,12 +8,11 @@ import sys
 import textwrap
 from typing import ClassVar
 
-import gnureadline as readline
-
 from s3_browser import bookmarks, client, completion, paths, tokeniser, utils
 from s3_browser.argparse import ArgumentParser as SafeParser
 
 logger = logging.getLogger(__name__)
+readline = utils.get_readline()
 
 
 class Cli:
@@ -276,34 +275,34 @@ class Cli:
         print(
             textwrap.dedent(
                 """
-            Available commands:
+                Available commands:
 
-            help             Print this help message
-            exit             Bye!
+                help             Print this help message
+                exit             Bye!
 
-            bookmark         Add, remove, or list bookmarks.
-                             Use 'bookmark help' for more details.
-            cat [paths]      Print / concat contents of one or more path(s)
-            cd [path]        Change directory
-            clear            Clear the screen
-            file [key]       Show extended metadata about a given key
-            get [s3] [local] Download an S3 key to local disk
-            head [key]       Alias for file
-            ll [path]        Like ls, but show modified times and object types
-            ls [path]        List the contents of an s3 "directory"
-            prompt [str]     Override the current prompt string
-            put [local] [s3] Upload a local file to S3
-            pwd              Print the current working directory
-            refresh          Clear the ls cache
-            rm [keys]        Delete one or more keys
+                bookmark         Add, remove, or list bookmarks.
+                                 Use 'bookmark help' for more details.
+                cat [paths]      Print / concat contents of one or more path(s)
+                cd [path]        Change directory
+                clear            Clear the screen
+                file [key]       Show extended metadata about a given key
+                get [s3] [local] Download an S3 key to local disk
+                head [key]       Alias for file
+                ll [path]        Like ls, but show modified times and object types
+                ls [path]        List the contents of an s3 "directory"
+                prompt [str]     Override the current prompt string
+                put [local] [s3] Upload a local file to S3
+                pwd              Print the current working directory
+                refresh          Clear the ls cache
+                rm [keys]        Delete one or more keys
 
-            Tab completion is available for most commands.
+                Tab completion is available for most commands.
 
-            Most commands support the --help flag to see full usage
-            information, e.g. cat --help
+                Most commands support the --help flag to see full usage
+                information, e.g. cat --help
 
-            Command history is available (stored in ~/.s3_browser_history)
-            """
+                Command history is available (stored in ~/.s3_browser_history)
+                """
             )
         )
 

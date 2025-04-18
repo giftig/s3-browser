@@ -52,7 +52,7 @@ class S3Client:
             if _next == next_path.path:
                 break
 
-            next_path.path = next
+            next_path.path = _next
 
         logger.debug("Clearing cache keys: %s", cache_keys)
         logger.debug("Cache keys present: %s", self.path_cache.keys())

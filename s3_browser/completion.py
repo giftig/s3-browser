@@ -3,9 +3,10 @@ import os
 import shlex
 from typing import ClassVar
 
-import gnureadline as readline
+from s3_browser import utils
 
 logger = logging.getLogger(__name__)
+readline = utils.get_readline()
 
 
 class CliCompleter:
