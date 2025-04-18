@@ -48,8 +48,8 @@ class S3Client:
         while True:
             cache_keys.extend([(next_path.canonical, True), (next_path.canonical, False)])
 
-            next = os.path.dirname(next_path.path)
-            if next == next_path.path:
+            _next = os.path.dirname(next_path.path)
+            if _next == next_path.path:
                 break
 
             next_path.path = next

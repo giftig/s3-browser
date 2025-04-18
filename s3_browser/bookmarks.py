@@ -30,7 +30,9 @@ class BookmarkManager:
         if bookmarks is None:
             return False
 
-        bookmarks[name] = Bookmark(path=str(path), created_on=datetime.datetime.now())
+        bookmarks[name] = Bookmark(
+            path=str(path), created_on=datetime.datetime.now(tz=datetime.UTC)
+        )
         self._bookmarks = bookmarks
         self.save()
 

@@ -11,6 +11,7 @@ fmt:
 
 test:
 	uv run pytest --cov=s3_browser
+	ruff check
 
 install:
 	uv sync

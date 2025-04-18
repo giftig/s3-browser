@@ -46,7 +46,7 @@ class UtilsTest(unittest.TestCase):
                 "RetryAttempts": 0,
             },
             "AcceptRanges": "bytes",
-            "LastModified": datetime.datetime(2021, 5, 22, 0, 0, 0),
+            "LastModified": datetime.datetime(2021, 5, 22, 0, 0, 0, tzinfo=datetime.UTC),
             "ContentLength": 13409,
             "ETag": '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"',
             "ContentType": "application/x-tar",

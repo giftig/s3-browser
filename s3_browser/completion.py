@@ -1,6 +1,7 @@
 import logging
 import os
 import shlex
+from typing import ClassVar
 
 import gnureadline as readline
 
@@ -12,8 +13,8 @@ class CliCompleter:
     Tab-complete functionality for the cli
     """
 
-    EXPECTS_KEY = {"cat", "file", "head", "rm"}
-    EXPECTS_S3_PATH = {"cd", "ls", "ll"}.union(EXPECTS_KEY)
+    EXPECTS_KEY: ClassVar[set[str]] = {"cat", "file", "head", "rm"}
+    EXPECTS_S3_PATH: ClassVar[set[str]] = {"cd", "ls", "ll"}.union(EXPECTS_KEY)
 
     def __init__(self, cli):
         self.cli = cli

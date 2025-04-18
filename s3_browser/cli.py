@@ -6,6 +6,7 @@ import os
 import shlex
 import sys
 import textwrap
+from typing import ClassVar
 
 import gnureadline as readline
 
@@ -28,7 +29,7 @@ class Cli:
         """
     )
 
-    RECOGNISED_COMMANDS = [
+    RECOGNISED_COMMANDS: ClassVar[list[str]] = [
         "bookmark",
         "cat",
         "cd",
@@ -334,7 +335,7 @@ class Cli:
             "bookmark": self.bookmark,
             "cat": self.cat,
             "cd": self.cd,
-            "clear": lambda: os.system("clear"),
+            "clear": lambda: os.system("clear"),  # noqa: S605, S607
             "exit": self.exit,
             "file": self.print_head_data,
             "get": self.get,
