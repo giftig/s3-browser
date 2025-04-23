@@ -147,10 +147,12 @@ def get_readline():
     """
     import readline
 
-    if getattr(readline, "backend", None) == "readline":
+    readline_backend = getattr(readline, "backend", None)
+
+    if readline_backend == "readline":
         return readline
 
-    if "libedit" in readline.__doc__:
+    if readline_backend == "libedit" or "libedit" in readline.__doc__:
         import gnureadline
 
         return gnureadline
