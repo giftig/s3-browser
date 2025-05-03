@@ -330,7 +330,7 @@ class Cli:
             return
 
         def _ll(*args):
-            return self.ls("-1", *args)
+            return self.ls("-l", *args)
 
         func = {
             "bookmark": self.bookmark,
