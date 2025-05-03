@@ -162,6 +162,10 @@ class S3Client:
         """Get a full object at a path"""
         return self.boto.get_object(Bucket=path.bucket, Key=path.path)
 
-    def is_path(self, path):
+    def is_path(self, path: paths.S3Path) -> bool:
+        # Bucket roots are valid paths
+        if path.bucket and not path.path:
+            return True
+
         # TODO: Do this with head_object instead?
         return bool(self.ls(path))

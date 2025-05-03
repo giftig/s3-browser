@@ -74,7 +74,7 @@ class Cli:
         """Print a message in red"""
         print(f"\x1b[31m{msg}\x1b[0m", file=sys.stderr)
 
-    def normalise_path(self, path):
+    def normalise_path(self, path: str) -> paths.S3Path:
         # Render variables present in the path
         context = (
             {} if not self.bookmarks else {k: v.path for k, v in self.bookmarks.bookmarks.items()}
