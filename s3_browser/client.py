@@ -59,24 +59,25 @@ class S3Client:
         for k in cache_keys:
             self.path_cache.pop(k, None)
 
-    def ls(self, path, path_fragment=False):
-        """
-        Lists files directly under the given s3 path
-
-        :type path: s3_browser.paths.S3Path
-        """
-        logger.debug("ls called: %s, %s", path, path_fragment)
-        cache_key = (path.canonical, path_fragment)
+    def ls(self, path: paths.S3Path, path_fragment: bool = False, exclude_buckets: bool = False):
+        """Lists files directly under the given s3 path"""
+        logger.debug(
+            "ls called: %s, path_fragment=%s, exclude_buckets=%s",
+            repr(path),
+            path_fragment,
+            exclude_buckets,
+        )
+        cache_key = (path.canonical, path_fragment, exclude_buckets)
         cached = self.path_cache.get(cache_key)
 
         if cached is not None:
-            logger.debug("cache hit")
+            logger.debug("cache hit: %s", cached)
             return cached
 
         logger.debug("cache miss")
 
         def _fetch():
-            if not path.bucket or not path.path and path_fragment:
+            if not exclude_buckets and (not path.bucket or not path.path and path_fragment):
                 logger.debug("Listing buckets")
                 res = [
                     paths.S3Bucket(b["Name"]) for b in self.boto.list_buckets().get("Buckets", [])
@@ -85,7 +86,7 @@ class S3Client:
                     logger.debug('Trimming bucket list: "%s"', path.bucket)
                     res = [r for r in res if r.bucket.startswith(path.bucket)]
 
-                logger.debug("Found buckets: %s", [str(r) for r in res])
+                logger.debug("Found buckets: %s", res)
                 return res
 
             if not path_fragment:
@@ -113,11 +114,7 @@ class S3Client:
                     if r["Key"] != search_path
                 ]
 
-            logger.debug(
-                "results: prefixes: %s -- keys: %s",
-                [str(p) for p in prefixes],
-                [str(k) for k in keys],
-            )
+            logger.debug("results: %s", prefixes + keys)
             return prefixes + keys
 
         res = _fetch()

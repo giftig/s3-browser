@@ -104,7 +104,7 @@ class CliCompleter:
             return "~/" if state == 0 else None
 
         special_results = []
-        search_term = None
+        search_path = None
         basename = os.path.basename(partial)
 
         # If our path ends with . or .., we might be looking for keys prefixed
@@ -114,14 +114,18 @@ class CliCompleter:
         # following the relative paths, as well as suggesting ./ or ../
         if basename in {".", ".."}:
             special_results.append(basename + "/")
-            search_term = self.cli.normalise_path(os.path.dirname(partial))
-            search_term.path = os.path.join(search_term.path, basename)
+            search_path = self.cli.normalise_path(os.path.dirname(partial))
+            search_path.path = os.path.join(search_path.path, basename)
         else:
-            search_term = self.cli.normalise_path(partial)
+            search_path = self.cli.normalise_path(partial)
 
         hits = [
             shlex.quote(str(r))
-            for r in self.s3_client.ls(search_term, path_fragment=not partial.endswith("/"))
+            for r in self.s3_client.ls(
+                search_path,
+                path_fragment=not partial.endswith("/"),
+                exclude_buckets=self.cli.current_path.bucket is not None,
+            )
             if allow_keys or not r.is_key
         ]
 

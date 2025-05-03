@@ -65,7 +65,7 @@ select = [
     "EXE",
     "F",
     "FA",
-    "FBT",
+    "FBT003",
     "FLY",
     "G",
     "I",
@@ -102,7 +102,6 @@ ignore = [
   # Ruff recommends disabling these two
   "COM812",
   "ISC001",
-  "FBT002",  # Just don't provide the boolean as a positional argument
   "PLR2004",
   "N818", # "Exception" suffix is fine imo
   "RUF021",  # Unnecessary brackets are not clearer than no brackets

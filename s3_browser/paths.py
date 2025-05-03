@@ -63,6 +63,9 @@ class S3Path:
 
         return "/{}/{}".format(self.bucket, self.path or "")
 
+    def __repr__(self):
+        return f"S3Path({self.bucket}, {self.path})"
+
 
 class S3Bucket:
     """
@@ -95,6 +98,9 @@ class S3Bucket:
 
     def __str__(self):
         return self.bucket
+
+    def __repr__(self):
+        return f"S3Bucket({self.bucket})"
 
 
 class S3Prefix:
@@ -131,6 +137,9 @@ class S3Prefix:
     def __str__(self):
         return self.prefix
 
+    def __repr__(self):
+        return f"S3Prefix({self.prefix})"
+
 
 class S3Key:
     """
@@ -159,3 +168,6 @@ class S3Key:
 
     def __str__(self):
         return self.key
+
+    def __repr__(self):
+        return f"S3Key({self.key}, {self.updated_on})"
