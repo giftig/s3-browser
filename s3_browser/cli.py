@@ -174,7 +174,9 @@ class Cli:
         if parser.exited:
             return
 
-        self.client.put(args.local_file, self.normalise_path(args.s3_key))
+        local_file = os.path.expanduser(args.local_file)
+
+        self.client.put(local_file, self.normalise_path(args.s3_key))
 
     def get(self, *args):
         parser = SafeParser("get")
@@ -186,7 +188,7 @@ class Cli:
             return
 
         s3_key = self.normalise_path(args.s3_key)
-        local_file = args.local_path
+        local_file = os.path.expanduser(args.local_path)
 
         if os.path.isdir(args.local_path):
             local_file = os.path.join(args.local_path, os.path.basename(s3_key.path))
