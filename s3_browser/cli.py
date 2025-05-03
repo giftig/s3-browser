@@ -6,17 +6,37 @@ import os
 import shlex
 import sys
 import textwrap
+from dataclasses import dataclass
+from enum import Enum
 from typing import ClassVar
 
+from prompt_toolkit import PromptSession
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.completion import ThreadedCompleter
+from prompt_toolkit.history import FileHistory
+from prompt_toolkit.styles import Style
+
 from s3_browser import bookmarks, client, completion, paths, tokeniser, utils
+from s3_browser import ps1 as ps1_utils
 from s3_browser.argparse import ArgumentParser as SafeParser
 
 logger = logging.getLogger(__name__)
-readline = utils.get_readline()
+
+
+class PathFormat(Enum):
+    full = "full"
+    short = "short"
+    end = "end"
+    none = "none"
+
+
+@dataclass
+class Ps1:
+    style: Style
+    path_format: PathFormat
 
 
 class Cli:
-    DEFAULT_PS1 = "s3://\001\x1b[36m\002{path_short}\001\x1b[0m\002> "
     SPLASH = textwrap.dedent(
         """
         Welcome to the interactive AWS S3 navigator.
@@ -56,8 +76,8 @@ class Cli:
         bookmark_file=None,
     ):
         self.history_file = history_file
-        self.ps1 = ps1 or Cli.DEFAULT_PS1
         self.current_path = paths.S3Path.from_path(working_dir or "/")
+        self.ps1 = ps1
 
         self.client = client.S3Client(endpoint=endpoint)
 
@@ -66,8 +86,11 @@ class Cli:
         else:
             self.bookmarks = None
 
-        self.completion = completion.CliCompleter(self)
-        self.completion.bind()
+        self.prompt_session = PromptSession(
+            auto_suggest=AutoSuggestFromHistory(),
+            history=FileHistory(history_file),
+            completer=ThreadedCompleter(completion.CliCompleter(self)),
+        )
 
     @staticmethod
     def _err(msg):
@@ -266,12 +289,21 @@ class Cli:
         print()
         utils.print_dict(data)
 
-    def _render_prompt(self):
-        return self.ps1.format(
-            path=self.current_path,
-            path_short=self.current_path.short_format,
-            path_end=(self.current_path.name or self.current_path.bucket or "/"),
-        )
+    def _prompt(self) -> None:
+        """Prompt for input with prompt toolkit"""
+        path: str | None = {
+            PathFormat.full: str(self.current_path),
+            PathFormat.short: self.current_path.short_format,
+            PathFormat.end: str(self.current_path.name or self.current_path.bucket or "/"),
+            PathFormat.none: None,
+        }.get(self.ps1.path_format, self.current_path.short_format)
+
+        if path is not None:
+            msg = [("class:basic", "s3://"), ("class:path", path), ("class:basic", "> ")]
+        else:
+            msg = [("class:basic", "> ")]
+
+        return self.prompt_session.prompt(msg, style=self.ps1.style)
 
     def help(self):
         print(
@@ -279,24 +311,26 @@ class Cli:
                 """
                 Available commands:
 
-                help             Print this help message
-                exit             Bye!
+                help                Print this help message
+                exit                Bye!
 
-                bookmark         Add, remove, or list bookmarks.
-                                 Use 'bookmark help' for more details.
-                cat [paths]      Print / concat contents of one or more path(s)
-                cd [path]        Change directory
-                clear            Clear the screen
-                file [key]       Show extended metadata about a given key
-                get [s3] [local] Download an S3 key to local disk
-                head [key]       Alias for file
-                ll [path]        Like ls, but show modified times and object types
-                ls [path]        List the contents of an s3 "directory"
-                prompt [str]     Override the current prompt string
-                put [local] [s3] Upload a local file to S3
-                pwd              Print the current working directory
-                refresh          Clear the ls cache
-                rm [keys]        Delete one or more keys
+                bookmark            Add, remove, or list bookmarks.
+                                    Use 'bookmark help' for more details.
+                cat [paths]         Print / concat contents of one or more path(s)
+                cd [path]           Change directory
+                clear               Clear the screen
+                file [key]          Show extended metadata about a given key
+                get [s3] [local]    Download an S3 key to local disk
+                head [key]          Alias for file
+                ll [path]           Like ls, but show modified times and object types
+                ls [path]           List the contents of an s3 "directory"
+                prompt fmt [fmt]    Override the format of the current s3 path appearing in the
+                                    prompt: valid values for fmt are "short", "full", "end", "none"
+                prompt style [str]  Override the prompt styles. See s3-browser --help
+                put [local] [s3]    Upload a local file to S3
+                pwd                 Print the current working directory
+                refresh             Clear the ls cache
+                rm [keys]           Delete one or more keys
 
                 Tab completion is available for most commands.
 
@@ -308,16 +342,29 @@ class Cli:
             )
         )
 
+    def _override_prompt_format(self, path_format: str) -> None:
+        self.ps1.path_format = PathFormat(path_format)
+
+    def _override_prompt_style(self, prompt_style: str) -> None:
+        self.ps1.style = ps1_utils.read_style(prompt_style)
+
     def override_prompt(self, *args):
         if not args:
-            self.ps1 = self.DEFAULT_PS1
-        else:
-            self.ps1 = " ".join(args) + " "
+            raise ValueError("Subcommand missing for prompt: specify fmt or style")
+
+        subcmd = args[0]
+
+        func = {
+            "fmt": self._override_prompt_format,
+            "style": self._override_prompt_style,
+        }.get(subcmd)
+
+        if not func:
+            raise ValueError(f"Invalid subcommand for prompt: {subcmd}")
+
+        func(*args[1:])
 
     def exit(self):
-        if self.history_file:
-            readline.write_history_file(self.history_file)
-
         sys.exit(0)
 
     def clear_cache(self):
@@ -325,7 +372,7 @@ class Cli:
         print(f"Cleared {size} cached paths.")
 
     def prompt(self):
-        cmd = shlex.split(input(self._render_prompt()))
+        cmd = shlex.split(self._prompt())
         if not cmd:
             return
 
@@ -363,9 +410,6 @@ class Cli:
 
     def read_loop(self):
         """The main start up + main loop of the cli"""
-        if self.history_file and os.path.isfile(self.history_file):
-            readline.read_history_file(self.history_file)
-
         print(self.SPLASH)
 
         while True:
@@ -392,14 +436,21 @@ def configure_debug_logging():
 def main():
     parser = argparse.ArgumentParser("s3-browser")
     parser.add_argument(
-        "-p",
-        "--prompt",
-        dest="prompt",
+        "--prompt-path-format",
+        dest="prompt_path_format",
         type=str,
-        default=None,
+        default="short",
+        help="Path format to use in the prompt. Options are: full, short, end.",
+    )
+    parser.add_argument(
+        "--prompt-style",
+        dest="prompt_style",
+        type=str,
+        default="path:ansicyan",
         help=(
-            "Prompt string to use; use the special patterns {path}, "
-            "{path_short}, or {path_end} for displaying the current path"
+            "Style string to use for the prompt, allowing colouring the basic prompt and the path "
+            "portion of the prompt. e.g. 'basic:#ffffff path:#ffff00'. See prompt_toolkit for "
+            "more information."
         ),
     )
     parser.add_argument(
@@ -412,7 +463,6 @@ def main():
             "Hoststring like https://example.com:1234"
         ),
     )
-
     parser.add_argument(
         "--bookmarks",
         dest="bookmark_file",
@@ -441,10 +491,15 @@ def main():
     else:
         logging.disable(logging.CRITICAL)
 
+    ps1 = Ps1(
+        style=ps1_utils.read_style(args.prompt_style),
+        path_format=PathFormat[args.prompt_path_format],
+    )
+
     Cli(
         endpoint=args.endpoint,
         working_dir=args.working_dir,
-        ps1=args.prompt,
+        ps1=ps1,
         history_file=args.history_file,
         bookmark_file=args.bookmark_file,
     ).read_loop()

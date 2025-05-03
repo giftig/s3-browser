@@ -1,18 +1,19 @@
 import logging
 import os
 import shlex
+from collections.abc import Iterable
 from typing import ClassVar
 
-from s3_browser import utils
+from prompt_toolkit.completion import CompleteEvent, Completer, Completion
+from prompt_toolkit.document import Document
 
 logger = logging.getLogger(__name__)
-readline = utils.get_readline()
+
+QUOTES: set[str] = {"'", '"'}
 
 
-class CliCompleter:
-    """
-    Tab-complete functionality for the cli
-    """
+class CliCompleter(Completer):
+    """Tab-complete functionality for the cli, powered by prompt_toolkit"""
 
     EXPECTS_KEY: ClassVar[set[str]] = {"cat", "file", "head", "rm"}
     EXPECTS_S3_PATH: ClassVar[set[str]] = {"cd", "ls", "ll"}.union(EXPECTS_KEY)
@@ -21,7 +22,7 @@ class CliCompleter:
         self.cli = cli
         self.s3_client = self.cli.client
 
-    def _split_cmd(self, buf):
+    def _split_cmd(self, buf: str) -> list[str]:
         """
         Attempt to safely split an incomplete command in a shell-safe way.
         Shlex can get us most of the way there, but we have to deal with
@@ -71,18 +72,47 @@ class CliCompleter:
             logger.error("Failed last attempt at splitting with shlex: %s", e)
             raise
 
-    def complete_command(self, cmd, state):
+    @staticmethod
+    def _get_path_start_pos(path: str, doc: Document) -> int:
+        """
+        Attempt to calculate the correct start position for the given "partial" path passed to
+        subcommand completers, bearing in mind that partial quotes would have been stripped from
+        partial.
+
+        Usually this is back to the last forward slash, but if there was a quote before the partial
+        (which we should be able to find in the text from the Document) we should also go back one
+        char further.
+        """
+        offset = 1
+
+        text = doc.current_line_before_cursor
+
+        # Strip a closing quote if there is one, and account for it in the offset
+        if text and text[-1] in QUOTES:
+            text = text[:-1]
+            offset -= 1
+
+        # Now strip the quote before our path if there is one, and account for it again
+        if text.endswith(path) and text[-len(path) - 1] in QUOTES:
+            offset -= 1
+
+        slash_index = path.rfind("/")
+        return slash_index - len(path) + offset
+
+    def complete_command(self, cmd, doc: Document) -> Iterable[Completion]:
         """
         Complete a command if we're just starting to write a command (i.e.
         no spaces in the command yet)
         """
-        matches = [c for c in self.cli.RECOGNISED_COMMANDS if c.startswith(cmd)]
-        if state < len(matches):
-            return matches[state]
+        return [
+            Completion(c, start_position=-doc.cursor_position)
+            for c in self.cli.RECOGNISED_COMMANDS
+            if c.startswith(cmd)
+        ]
 
-        return None
-
-    def complete_s3_path(self, partial, state, allow_keys=False):
+    def complete_s3_path(
+        self, partial: str, doc: Document, allow_keys: bool = False
+    ) -> Iterable[Completion]:
         """
         Autocomplete for an expected S3 path by looking up possible paths at
         the current path prefix to complete with.
@@ -101,7 +131,7 @@ class CliCompleter:
         # ~ is a special case referring to the root of the current bucket,
         # so just add a forward slash to continue the path from that root
         if partial == "~":
-            return "~/" if state == 0 else None
+            return ["~/"]
 
         special_results = []
         search_path = None
@@ -130,20 +160,22 @@ class CliCompleter:
         ]
 
         res = special_results + hits
-        return res[state] if state < len(res) else None
+        return [Completion(r, start_position=self._get_path_start_pos(partial, doc)) for r in res]
 
-    def complete_local_path(self, partial, state):
+    def complete_local_path(self, partial: str, doc: Document) -> Iterable[Completion]:
         """
         Autocomplete for an expected local filesystem path
         """
+        start_pos = self._get_path_start_pos(partial, doc)
+
         # Expand users and do nothing further if ~ or ~user is provided alone
         if "~" in partial and "/" not in partial:
-            return os.path.expanduser(partial) if state == 0 else None
+            return [Completion(shlex.quote(os.path.expanduser(partial)), start_position=start_pos)]
 
         partial = os.path.expanduser(partial)
 
         if os.path.isfile(partial):
-            return shlex.quote(os.path.basename(partial)) if state == 0 else None
+            return [Completion(shlex.quote(os.path.basename(partial)), start_position=start_pos)]
 
         hits = []
 
@@ -156,9 +188,11 @@ class CliCompleter:
             if not parent or os.path.isdir(parent):
                 hits = [h for h in os.listdir(parent or ".") if h.startswith(frag)]
 
-        return shlex.quote(hits[state]) if state < len(hits) else None
+        return [Completion(shlex.quote(hit), start_position=start_pos) for hit in hits]
 
-    def complete_put_get(self, words, state, s3_first):
+    def complete_put_get(
+        self, words: list[str], doc: Document, s3_first: bool
+    ) -> Iterable[Completion]:
         """
         A put operation expects a local path first, followed by an S3 path. A
         get operation expects them the other way round. We can determine which
@@ -169,42 +203,39 @@ class CliCompleter:
         arg_count = len(args)
 
         if s3_first and arg_count == 1 or not s3_first and arg_count == 2:
-            return self.complete_s3_path(args[-1], state, allow_keys=True)
+            return self.complete_s3_path(args[-1], doc, allow_keys=True)
 
         if s3_first and arg_count == 2 or not s3_first and arg_count == 1:
-            return self.complete_local_path(args[-1], state)
+            return self.complete_local_path(args[-1], doc)
 
-        return None
+        return []
 
-    def complete_bookmark(self, text, state):
+    def complete_bookmark(self, text: str, doc: Document) -> Iterable[Completion]:
         # TODO: Autocomplete $ or ${}
-        return None
+        return []
 
-    def complete(self, text, state):
+    def get_completions(
+        self, document: Document, complete_event: CompleteEvent
+    ) -> Iterable[Completion]:
         """
         Autocomplete the next word by figuring out the context of what we're
         doing and delegating to the appropriate completion method
         """
-        buf = readline.get_line_buffer()
-
-        words = self._split_cmd(buf)
+        # TODO: Document also supports cursor_position and selection states, so we can do more
+        # advanced completion than we could with readline
+        words = self._split_cmd(document.text)
         cmd = words[0]
 
         if len(words) == 1:
-            return self.complete_command(cmd, state)
+            return self.complete_command(cmd, document)
 
         if cmd == "put":
-            return self.complete_put_get(words, state, s3_first=False)
+            return self.complete_put_get(words, document, s3_first=False)
 
         if cmd == "get":
-            return self.complete_put_get(words, state, s3_first=True)
+            return self.complete_put_get(words, document, s3_first=True)
 
         if cmd in self.EXPECTS_S3_PATH:
-            return self.complete_s3_path(words[-1], state, cmd in self.EXPECTS_KEY)
+            return self.complete_s3_path(words[-1], document, cmd in self.EXPECTS_KEY)
 
-        return None
-
-    def bind(self):
-        readline.set_completer_delims(" \t\n/;")
-        readline.parse_and_bind("tab: complete")
-        readline.set_completer(self.complete)
+        return []

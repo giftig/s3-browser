@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "boto3>=1.9.0",
-    "gnureadline>=8.2.13",
+    "prompt-toolkit>=3.0.48",
     "python-magic>=0.4.27",
 ]
 
