@@ -57,11 +57,15 @@ class S3Path:
     def __eq__(self, other):
         return self.canonical == other.canonical
 
-    def __str__(self):
+    @property
+    def path_string(self):
         if not self.bucket:
             return "/"
 
         return "/{}/{}".format(self.bucket, self.path or "")
+
+    def __str__(self):
+        return self.path_string
 
     def __repr__(self):
         return f"S3Path({self.bucket}, {self.path})"
@@ -94,10 +98,10 @@ class S3Bucket:
         """
         Prefix the bucket value with / to indicate it's absolute (top-level)
         """
-        return "/" + self.bucket
+        return f"/{self.bucket}/"
 
     def __str__(self):
-        return self.bucket
+        return self.path_string
 
     def __repr__(self):
         return f"S3Bucket({self.bucket})"

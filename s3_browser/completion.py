@@ -120,7 +120,7 @@ class CliCompleter:
             search_path = self.cli.normalise_path(partial)
 
         hits = [
-            shlex.quote(str(r))
+            shlex.quote(r.path_string)
             for r in self.s3_client.ls(
                 search_path,
                 path_fragment=not partial.endswith("/"),
