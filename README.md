@@ -28,20 +28,18 @@ And then run with `s3-browser`.
 
 ## Development
 
+You'll need `uv` and `ruff` to work with this project.
+
 ### Running tests
 
-This project uses `make` for ease of use. You can install the project in development mode,
-and install the test requirements, using the `install` target:
+This project uses `make` for ease of use. You can run tests by simply running:
 
 ```bash
-make install
+make test
 ```
 
-It's recommended to create and activate a virtual environment first. There are a number of ways
-to do that; I like [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/).
-
-Use `make` to run the full build.
-
+Use `make` to run the full build, including tests with `pytest` and formatting and
+linting with `ruff`.
 
 ### Testing against minio
 
