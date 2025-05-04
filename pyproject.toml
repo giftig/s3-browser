@@ -1,6 +1,6 @@
 [project]
 name = "s3_browser"
-version = "0.4.0"
+version = "0.5.0"
 description = "An interactive tool to browse s3 like a regular directory structure"
 readme = "README.md"
 requires-python = ">=3.7"
