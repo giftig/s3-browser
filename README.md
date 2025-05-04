@@ -9,12 +9,11 @@ A small, interactive tool to browse s3 like a regular directory structure
 Written in python.
 
 ## Features
-  * Tab completion
+  * Autocompletion and command history, powered by [prompt toolkit][prompt-toolkit]
   * Familiar interface for unix users (`cd`, `ls`, `file`, `pwd`, etc.)
   * Bookmarking (`bookmark add`, `bookmark ls`...)
   * Inspect key metadata (`file`) or contents (`cat`)
   * Download or upload individual keys to/from local files (`put` or `get`)
-  * Maintains command history
   * Lazy-loading and caching of paths (no scanning entire buckets on start up)
 
 ## Installation
@@ -43,7 +42,6 @@ to do that; I like [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/
 
 Use `make` to run the full build.
 
-[usage-1]: readme-resources/usage-1.png "Usage example"
 
 ### Testing against minio
 
@@ -61,3 +59,6 @@ uv run s3-browser --endpoint http://localhost:19000
 Create a source distribution with setup.py and upload it to pypi with twine:
 
 `make dist && make dist/release`
+
+[prompt-toolkit]: https://python-prompt-toolkit.readthedocs.io/en/master/
+[usage-1]: readme-resources/usage-1.png "Usage example"
