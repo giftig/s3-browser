@@ -590,7 +590,7 @@ wheels = [
 
 [[package]]
 name = "s3-browser"
-version = "0.5.0"
+version = "0.5.1"
 source = { editable = "." }
 dependencies = [
     { name = "boto3", version = "1.33.13", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.8'" },
