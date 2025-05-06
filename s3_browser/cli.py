@@ -67,13 +67,15 @@ class Cli:
         "rm",
     ]
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
-        endpoint=None,
-        working_dir=None,
-        ps1=None,
-        history_file=None,
-        bookmark_file=None,
+        endpoint: str | None,
+        working_dir: str,
+        ps1: Ps1,
+        history_file: str,
+        bookmark_file: str,
+        history_search: bool = True,
+        complete_while_typing: bool = False,
     ):
         self.history_file = history_file
         self.current_path = paths.S3Path.from_path(working_dir or "/")
@@ -90,6 +92,8 @@ class Cli:
             auto_suggest=AutoSuggestFromHistory(),
             history=FileHistory(history_file),
             completer=ThreadedCompleter(completion.CliCompleter(self)),
+            complete_while_typing=False,
+            enable_history_search=True,
         )
 
     @staticmethod
@@ -476,6 +480,26 @@ def main():
         default="{}/.s3_browser_history".format(os.environ.get("HOME", "/etc")),
     )
     parser.add_argument(
+        "--complete-while-typing",
+        dest="complete_while_typing",
+        action="store_true",
+        help=(
+            "Enable complete-while-typing, autocompleting buckets and paths without requiring "
+            "an explicit tab to request autocompletion. Note that this will perform S3 prefix "
+            "searches as you type, which may incur a cost. Implies --no-history-search due to "
+            "conflicting keybinds, see prompt_toolkit for more details."
+        )
+    )
+    parser.add_argument(
+        "--no-history-search",
+        dest="history_search",
+        action="store_false",
+        help=(
+            "Disable history search, i.e. up and down arrows will no longer look for command "
+            "prefixes in your history"
+        )
+    )
+    parser.add_argument(
         "--debug",
         dest="debug",
         action="store_true",
@@ -502,6 +526,8 @@ def main():
         ps1=ps1,
         history_file=args.history_file,
         bookmark_file=args.bookmark_file,
+        history_search=args.history_search,
+        complete_while_typing=args.complete_while_typing,
     ).read_loop()
 
 
