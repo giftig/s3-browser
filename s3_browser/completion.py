@@ -144,7 +144,7 @@ class CliCompleter(Completer):
         # relative meanings of those terms. In which case, we need to look for
         # files with that prefix in the directory above them, rather than
         # following the relative paths, as well as suggesting ./ or ../
-        if basename in {".", ".."}:
+        if basename in {".", ".."} and self.cli.current_path.bucket is not None:
             special_results.append(basename + "/")
             search_path = self.cli.normalise_path(os.path.dirname(partial))
             search_path.path = os.path.join(search_path.path or "", basename)
