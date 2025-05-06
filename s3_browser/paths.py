@@ -25,15 +25,16 @@ class S3Path:
 
     @staticmethod
     def from_path(path):
-        stripped = path
-        if stripped.startswith("s3://"):
-            stripped = path[5:]
+        if path.startswith("s3://"):
+            path = path[5:]
 
-        stripped = stripped.strip("/")
-        if not stripped:
+        path = os.path.normpath(path)
+
+        path = path.strip("/")
+        if not path or path == ".":
             return S3Path(None, None)
 
-        comp = stripped.split("/")
+        comp = path.split("/")
         return S3Path(comp[0], "/".join(comp[1:]))
 
     @property

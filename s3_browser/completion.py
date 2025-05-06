@@ -161,8 +161,7 @@ class CliCompleter(Completer):
             logger.exception("Unexpected error while completing s3 path")
 
         hits = [
-            shlex.quote(r.path_string.lstrip("/"))
-            for r in results if allow_keys or not r.is_key
+            shlex.quote(r.path_string.lstrip("/")) for r in results if allow_keys or not r.is_key
         ]
 
         res = special_results + hits
