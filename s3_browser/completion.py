@@ -4,6 +4,7 @@ import shlex
 from collections.abc import Iterable
 from typing import ClassVar
 
+from botocore.exceptions import ClientError
 from prompt_toolkit.completion import CompleteEvent, Completer, Completion
 from prompt_toolkit.document import Document
 
@@ -145,18 +146,20 @@ class CliCompleter(Completer):
         if basename in {".", ".."}:
             special_results.append(basename + "/")
             search_path = self.cli.normalise_path(os.path.dirname(partial))
-            search_path.path = os.path.join(search_path.path, basename)
+            search_path.path = os.path.join(search_path.path or "", basename)
         else:
             search_path = self.cli.normalise_path(partial)
 
-        hits = [
-            shlex.quote(r.path_string)
-            for r in self.s3_client.ls(
+        try:
+            results = self.s3_client.ls(
                 search_path,
                 path_fragment=bool(not partial.endswith("/") and partial),
             )
-            if allow_keys or not r.is_key
-        ]
+        except ClientError:
+            results = []
+            logger.exception("Unexpected error while completing s3 path")
+
+        hits = [shlex.quote(r.path_string) for r in results if allow_keys or not r.is_key]
 
         res = special_results + hits
         return [Completion(r, start_position=self._get_path_start_pos(partial, doc)) for r in res]
