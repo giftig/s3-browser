@@ -69,19 +69,18 @@ class Cli:
 
     def __init__(  # noqa: PLR0913
         self,
-        endpoint: str | None,
+        s3_client: client.S3Client,
         working_dir: str,
         ps1: Ps1,
-        history_file: str,
-        bookmark_file: str,
+        history_file: str | None,
+        bookmark_file: str | None,
         history_search: bool = True,
         complete_while_typing: bool = False,
     ):
         self.history_file = history_file
         self.current_path = paths.S3Path.from_path(working_dir or "/")
         self.ps1 = ps1
-
-        self.client = client.S3Client(endpoint=endpoint)
+        self.client = s3_client
 
         if bookmark_file:
             self.bookmarks = bookmarks.BookmarkManager(bookmark_file)
@@ -108,15 +107,16 @@ class Cli:
         )
         path = tokeniser.render(tokeniser.tokenise(path), context)
 
-        # Strip off the protocol prefix if provided
+        # Strip off the protocol prefix if provided, and apply a leading / to indicate absolute
         if path.startswith("s3://"):
-            path = path[5:]
+            path = "/" + path[5:].lstrip("/")
 
         # Special case: ~ refers to the root of the current bucket
+        # TODO: If I'm going to accept this I should also accept ~/foo/bar/baz
         if path in {"~", "~/"}:
             return paths.S3Path(bucket=self.current_path.bucket, path=None)
 
-        path = os.path.join("/" + str(self.current_path), path)
+        path = os.path.join(self.current_path.path_string, path)
         return paths.S3Path.from_path(path)
 
     def cd(self, path=""):
@@ -520,8 +520,10 @@ def main():
         path_format=PathFormat[args.prompt_path_format],
     )
 
+    s3_client = client.S3Client(endpoint=args.endpoint)
+
     Cli(
-        endpoint=args.endpoint,
+        s3_client=s3_client,
         working_dir=args.working_dir,
         ps1=ps1,
         history_file=args.history_file,
