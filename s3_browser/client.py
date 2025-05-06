@@ -59,15 +59,11 @@ class S3Client:
         for k in cache_keys:
             self.path_cache.pop(k, None)
 
-    def ls(self, path: paths.S3Path, path_fragment: bool = False, exclude_buckets: bool = False):
+    def ls(self, path: paths.S3Path, path_fragment: bool = False):
         """Lists files directly under the given s3 path"""
-        logger.debug(
-            "ls called: %s, path_fragment=%s, exclude_buckets=%s",
-            repr(path),
-            path_fragment,
-            exclude_buckets,
-        )
-        cache_key = (path.canonical, path_fragment, exclude_buckets)
+        logger.debug("ls called: %s, path_fragment=%s", repr(path), path_fragment)
+
+        cache_key = (path.canonical, path_fragment)
         cached = self.path_cache.get(cache_key)
 
         if cached is not None:
@@ -77,7 +73,10 @@ class S3Client:
         logger.debug("cache miss")
 
         def _fetch():
-            if not exclude_buckets and (not path.bucket or not path.path and path_fragment):
+            # Search for buckets if there's no bucket in the path, or if it's a partial bucket
+            # name: i.e. we're coming from autocomplete and either there's no path component or
+            # the path string ended with a forward slash, meaning the bucket name is complete
+            if not path.bucket or not path.path and path_fragment:
                 logger.debug("Listing buckets")
                 res = [
                     paths.S3Bucket(b["Name"]) for b in self.boto.list_buckets().get("Buckets", [])

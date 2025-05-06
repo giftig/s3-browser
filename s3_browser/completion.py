@@ -153,8 +153,7 @@ class CliCompleter(Completer):
             shlex.quote(r.path_string)
             for r in self.s3_client.ls(
                 search_path,
-                path_fragment=not partial.endswith("/"),
-                exclude_buckets=self.cli.current_path.bucket is not None,
+                path_fragment=bool(not partial.endswith("/") and partial),
             )
             if allow_keys or not r.is_key
         ]
