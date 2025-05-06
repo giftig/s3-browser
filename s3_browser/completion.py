@@ -98,6 +98,7 @@ class CliCompleter(Completer):
             offset -= 1
 
         slash_index = path.rfind("/")
+
         return slash_index - len(path) + offset
 
     def complete_command(self, cmd, doc: Document) -> Iterable[Completion]:
@@ -159,7 +160,10 @@ class CliCompleter(Completer):
             results = []
             logger.exception("Unexpected error while completing s3 path")
 
-        hits = [shlex.quote(r.path_string) for r in results if allow_keys or not r.is_key]
+        hits = [
+            shlex.quote(r.path_string.lstrip("/"))
+            for r in results if allow_keys or not r.is_key
+        ]
 
         res = special_results + hits
         return [Completion(r, start_position=self._get_path_start_pos(partial, doc)) for r in res]
