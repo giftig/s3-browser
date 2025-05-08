@@ -113,8 +113,11 @@ class Cli:
 
         # Special case: ~ refers to the root of the current bucket
         # TODO: If I'm going to accept this I should also accept ~/foo/bar/baz
-        if path in {"~", "~/"}:
-            return paths.S3Path(bucket=self.current_path.bucket, path=None)
+        if path == "~":
+            path = f"/{self.current_path.bucket or ""}"
+
+        if path.startswith("~/"):
+            path = f"/{self.current_path.bucket or ""}/{path[2:]}"
 
         path = os.path.join(self.current_path.path_string, path)
         return paths.S3Path.from_path(path)

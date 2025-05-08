@@ -33,6 +33,9 @@ from s3_browser.paths import S3Path
         ("~/", "/", S3Path(bucket=None, path=None)),
         ("~/", "/bucket/", S3Path(bucket="bucket", path=None)),
         ("~/", "/bucket/a/b/c", S3Path(bucket="bucket", path=None)),
+        ("~/d/e/f", "/", S3Path(bucket="d", path="e/f")),
+        ("~/d/e/f", "/bucket/", S3Path(bucket="bucket", path="d/e/f")),
+        ("~/d/e/f", "/bucket/a/b/c", S3Path(bucket="bucket", path="d/e/f")),
         # Relative paths
         ("bucket", "/", S3Path(bucket="bucket", path=None)),
         ("bucket/a/b", "/", S3Path(bucket="bucket", path="a/b")),
