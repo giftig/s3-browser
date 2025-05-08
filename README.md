@@ -54,9 +54,11 @@ uv run s3-browser --endpoint http://localhost:19000
 
 ## Releasing
 
-Create a source distribution with setup.py and upload it to pypi with twine:
+Create a source distribution with upload it to pypi using uv:
 
 `make dist && make dist/release`
+
+This requires `UV_PUBLISH_USERNAME` and `UV_PUBLISH_PASSWORD` to be set.
 
 [prompt-toolkit]: https://python-prompt-toolkit.readthedocs.io/en/master/
 [usage-1]: readme-resources/usage-1.png "Usage example"
