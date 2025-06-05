@@ -112,7 +112,6 @@ class Cli:
             path = "/" + path[5:].lstrip("/")
 
         # Special case: ~ refers to the root of the current bucket
-        # TODO: If I'm going to accept this I should also accept ~/foo/bar/baz
         if path == "~":
             path = f"/{self.current_path.bucket or ""}"
 
