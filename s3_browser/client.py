@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Any
 
 import boto3
 import magic
@@ -21,12 +22,12 @@ class S3Client:
         self.path_cache = {}
         self.mime_typer = magic.Magic(mime=True)
 
-    def clear_cache(self):
+    def clear_cache(self) -> int:
         size = len(self.path_cache)
         self.path_cache = {}
         return size
 
-    def invalidate_cache(self, path):
+    def invalidate_cache(self, path) -> None:
         """
         Invalidate cache entries for a particular S3Path
 
@@ -59,7 +60,7 @@ class S3Client:
         for k in cache_keys:
             self.path_cache.pop(k, None)
 
-    def ls(self, path: paths.S3Path, path_fragment: bool = False):
+    def ls(self, path: paths.S3Path, path_fragment: bool = False) -> list[paths.S3Base]:
         """Lists files directly under the given s3 path"""
         logger.debug("ls called: %s, path_fragment=%s", repr(path), path_fragment)
 
@@ -72,7 +73,7 @@ class S3Client:
 
         logger.debug("cache miss")
 
-        def _fetch():
+        def _fetch() -> list[paths.S3Base]:
             # Search for buckets if there's no bucket in the path, or if it's a partial bucket
             # name: i.e. we're coming from autocomplete and either there's no path component or
             # the path string ended with a forward slash, meaning the bucket name is complete
@@ -122,7 +123,7 @@ class S3Client:
 
         return res
 
-    def head(self, path):
+    def head(self, path: paths.S3Path) -> dict[str, Any]:
         """Get head metadata for a path"""
         res = None
         if not path.path:
@@ -133,13 +134,13 @@ class S3Client:
         logger.debug("Head %s: response = %s", path, res)
         return res
 
-    def rm(self, path):
+    def rm(self, path) -> None:
         """Delete a key"""
         self.boto.delete_object(Bucket=path.bucket, Key=path.path)
         self.invalidate_cache(path)
 
-    def put(self, f, dest):
-        """Write a file to an S3Path"""
+    def put(self, f: str, dest: paths.S3Path) -> None:
+        """Write a file to S3"""
         content_type = self.mime_typer.from_file(f)
         logger.debug("Uploading %s to %s with content-type %s", f, dest, content_type)
 
@@ -152,12 +153,12 @@ class S3Client:
 
         self.invalidate_cache(dest)
 
-    def get(self, key, dest):
-        """Download a key (S3Path) to a local file"""
+    def get(self, key: paths.S3Path, dest: str) -> None:
+        """Download a key to a local file"""
         logger.debug("Downloading %s to %s", key, dest)
         self.boto.download_file(Bucket=key.bucket, Key=key.path, Filename=dest)
 
-    def get_object(self, path):
+    def get_object(self, path: paths.S3Path):
         """Get a full object at a path"""
         return self.boto.get_object(Bucket=path.bucket, Key=path.path)
 

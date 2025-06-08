@@ -22,6 +22,40 @@ from s3_browser.argparse import ArgumentParser as SafeParser
 
 logger = logging.getLogger(__name__)
 
+HELP_TEXT = textwrap.dedent(
+    """
+    Available commands:
+
+    help                Print this help message
+    exit                Bye!
+
+    bookmark            Add, remove, or list bookmarks.
+                        Use 'bookmark help' for more details.
+    cat [paths]         Print / concat contents of one or more path(s)
+    cd [path]           Change directory
+    clear               Clear the screen
+    file [key]          Show extended metadata about a given key
+    get [s3] [local]    Download an S3 key to local disk
+    head [key]          Alias for file
+    ll [path]           Like ls, but show modified times and object types
+    ls [path]           List the contents of an s3 "directory"
+    prompt fmt [fmt]    Override the format of the current s3 path appearing in the
+                        prompt: valid values for fmt are "short", "full", "end", "none"
+    prompt style [str]  Override the prompt styles. See s3-browser --help
+    put [local] [s3]    Upload a local file to S3
+    pwd                 Print the current working directory
+    refresh             Clear the ls cache
+    rm [keys]           Delete one or more keys
+
+    Tab completion is available for most commands.
+
+    Most commands support the --help flag to see full usage
+    information, e.g. cat --help
+
+    Command history is available (stored in ~/.s3_browser_history)
+    """
+)
+
 
 class PathFormat(Enum):
     full = "full"
@@ -82,10 +116,7 @@ class Cli:
         self.ps1 = ps1
         self.client = s3_client
 
-        if bookmark_file:
-            self.bookmarks = bookmarks.BookmarkManager(bookmark_file)
-        else:
-            self.bookmarks = None
+        self.bookmarks = bookmarks.BookmarkManager(bookmark_file) if bookmark_file else None
 
         self.prompt_session = PromptSession(
             auto_suggest=AutoSuggestFromHistory(),
@@ -96,7 +127,7 @@ class Cli:
         )
 
     @staticmethod
-    def _err(msg):
+    def _err(msg: str) -> None:
         """Print a message in red"""
         print(f"\x1b[31m{msg}\x1b[0m", file=sys.stderr)
 
@@ -121,7 +152,7 @@ class Cli:
         path = os.path.join(self.current_path.path_string, path)
         return paths.S3Path.from_path(path)
 
-    def cd(self, path=""):
+    def cd(self, path: str = "") -> bool:
         full_path = self.normalise_path(path)
 
         if self.client.is_path(full_path):
@@ -131,7 +162,7 @@ class Cli:
         self._err(f"cannot access '{path}': no such s3 directory")
         return False
 
-    def ls(self, *args):
+    def ls(self, *args) -> None:
         parser = SafeParser("ls")
         parser.add_argument(
             "-l",
@@ -167,7 +198,7 @@ class Cli:
         else:
             utils.print_grid(results)
 
-    def cat(self, *args):
+    def cat(self, *args) -> None:
         parser = SafeParser("cat")
         parser.add_argument("keys", nargs="+", help="S3 key(s) to concatenate")
         args = parser.parse_args(args)
@@ -181,7 +212,7 @@ class Cli:
             obj = self.client.get_object(p)
             utils.print_object(obj)
 
-    def rm(self, *args):
+    def rm(self, *args) -> None:
         parser = SafeParser("rm")
         parser.add_argument("keys", nargs="+", help="S3 key(s) to delete")
         args = parser.parse_args(args)
@@ -194,7 +225,7 @@ class Cli:
         for p in paths:
             self.client.rm(p)
 
-    def put(self, *args):
+    def put(self, *args) -> None:
         parser = SafeParser("put")
         parser.add_argument("local_file", help="Local file to upload to S3")
         parser.add_argument("s3_key", nargs=1, help="S3 key at which to write the file")
@@ -207,7 +238,7 @@ class Cli:
 
         self.client.put(local_file, self.normalise_path(args.s3_key))
 
-    def get(self, *args):
+    def get(self, *args) -> None:
         parser = SafeParser("get")
         parser.add_argument("s3_key", nargs=1, help="S3 key to download")
         parser.add_argument("local_path", help="Local destination for downloaded file")
@@ -224,7 +255,7 @@ class Cli:
 
         self.client.get(s3_key, local_file)
 
-    def add_bookmark(self, name, path):
+    def add_bookmark(self, name: str, path: str) -> None:
         if not bookmarks.BookmarkManager.validate_key(name):
             self._err(f"{name} is an invalid name for a bookmark")
             return
@@ -239,18 +270,18 @@ class Cli:
             self._err("Failed to add bookmark")
             return
 
-    def remove_bookmark(self, name):
+    def remove_bookmark(self, name: str) -> bool:
         if not self.bookmarks.remove_bookmark(name):
             self._err(f"{name} is not the name of a bookmark")
             return False
 
         return True
 
-    def list_bookmarks(self):
+    def list_bookmarks(self) -> None:
         for k, v in self.bookmarks.bookmarks.items():
             print(f"\x1b[33m${k: <18}\x1b[0m {v}")
 
-    def bookmark_help(self):
+    def bookmark_help(self) -> None:
         print(
             textwrap.dedent(
                 """
@@ -263,10 +294,10 @@ class Cli:
             )
         )
 
-    def bookmark(self, op, *args):
+    def bookmark(self, op: str, *args) -> None:
         if not self.bookmarks:
             self._err("Bookmarks are unavailable")
-            return None
+            return
 
         f = {
             "add": self.add_bookmark,
@@ -278,11 +309,11 @@ class Cli:
 
         if not f:
             self._err(f"Bad operation '{op}'. Try help for correct usage")
-            return None
+            return
 
-        return f(*args)
+        f(*args)
 
-    def print_head_data(self, key):
+    def print_head_data(self, key: str) -> None:
         """
         Print key size and other extended metadata about a key in a nice
         readable format
@@ -310,43 +341,6 @@ class Cli:
             msg = [("class:basic", "> ")]
 
         return self.prompt_session.prompt(msg, style=self.ps1.style)
-
-    def help(self):
-        print(
-            textwrap.dedent(
-                """
-                Available commands:
-
-                help                Print this help message
-                exit                Bye!
-
-                bookmark            Add, remove, or list bookmarks.
-                                    Use 'bookmark help' for more details.
-                cat [paths]         Print / concat contents of one or more path(s)
-                cd [path]           Change directory
-                clear               Clear the screen
-                file [key]          Show extended metadata about a given key
-                get [s3] [local]    Download an S3 key to local disk
-                head [key]          Alias for file
-                ll [path]           Like ls, but show modified times and object types
-                ls [path]           List the contents of an s3 "directory"
-                prompt fmt [fmt]    Override the format of the current s3 path appearing in the
-                                    prompt: valid values for fmt are "short", "full", "end", "none"
-                prompt style [str]  Override the prompt styles. See s3-browser --help
-                put [local] [s3]    Upload a local file to S3
-                pwd                 Print the current working directory
-                refresh             Clear the ls cache
-                rm [keys]           Delete one or more keys
-
-                Tab completion is available for most commands.
-
-                Most commands support the --help flag to see full usage
-                information, e.g. cat --help
-
-                Command history is available (stored in ~/.s3_browser_history)
-                """
-            )
-        )
 
     def _override_prompt_format(self, path_format: str) -> None:
         self.ps1.path_format = PathFormat(path_format)
@@ -394,7 +388,7 @@ class Cli:
             "file": self.print_head_data,
             "get": self.get,
             "head": self.print_head_data,
-            "help": self.help,
+            "help": lambda: print(HELP_TEXT),
             "ll": _ll,
             "ls": self.ls,
             "prompt": self.override_prompt,

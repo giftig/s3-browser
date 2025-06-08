@@ -1,7 +1,8 @@
 import shutil
+from typing import Any
 
 # TODO: This could probably be a couple of hundred content types
-_SAFE_CONTENT_TYPE_PREFIXES = [
+_SAFE_CONTENT_TYPE_PREFIXES: list[str] = [
     "application/json",
     "application/xml",
     "application/yaml",
@@ -9,7 +10,7 @@ _SAFE_CONTENT_TYPE_PREFIXES = [
 ]
 
 
-def _is_safe_content_type(ct):
+def _is_safe_content_type(ct: str | None) -> bool:
     """Compare content type to the list of (likely) safe prefixes"""
     if not ct:
         return False
@@ -17,7 +18,7 @@ def _is_safe_content_type(ct):
     return any(ct.startswith(prefix) for prefix in _SAFE_CONTENT_TYPE_PREFIXES)
 
 
-def print_grid(data):
+def print_grid(data: list[str]) -> None:
     """
     Print a list of strings in a grid according to the terminal size
     """
@@ -58,11 +59,11 @@ def print_grid(data):
         print(line)
 
 
-def print_dict(data, indent_level=0):
+def print_dict(data: dict[str, Any], indent_level: int = 0) -> None:
     """Pretty-print a dict full of key-value metadata pairs"""
     indent = "  " * indent_level
 
-    def _format_key(k):
+    def _format_key(k) -> str:
         return "{}{}{: <40}{}".format(indent, "\x1b[36m", k + ":", "\x1b[0m")
 
     for k, v in sorted(data.items()):
@@ -73,7 +74,7 @@ def print_dict(data, indent_level=0):
             print_dict(v, indent_level=indent_level + 1)
 
 
-def pretty_size(n):
+def pretty_size(n: float) -> str:
     """
     Convert a size in bytes to a human-readable string, rounded to nearest
     whole number of suitable units (B, KB, MB, GB or TB)
@@ -91,7 +92,7 @@ def pretty_size(n):
     return shortened
 
 
-def strip_s3_metadata(data):
+def strip_s3_metadata(data: dict[str, Any]) -> dict[str, Any]:
     """Strip s3 head_object metadata down to the useful stuff"""
     metadata = data.get("Metadata", {})
     http_head = data.get("ResponseMetadata", {}).get("HTTPHeaders", {})
@@ -109,7 +110,7 @@ def strip_s3_metadata(data):
     }
 
 
-def print_object(obj):
+def print_object(obj: dict[str, Any]) -> None:
     """
     Safely print a data stream representing an S3 object
 

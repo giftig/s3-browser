@@ -2,11 +2,14 @@ import logging
 import os
 import shlex
 from collections.abc import Iterable
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from botocore.exceptions import ClientError
 from prompt_toolkit.completion import CompleteEvent, Completer, Completion
 from prompt_toolkit.document import Document
+
+if TYPE_CHECKING:
+    from s3_browser.cli import Cli
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +22,7 @@ class CliCompleter(Completer):
     EXPECTS_KEY: ClassVar[set[str]] = {"cat", "file", "head", "rm"}
     EXPECTS_S3_PATH: ClassVar[set[str]] = {"cd", "ls", "ll"}.union(EXPECTS_KEY)
 
-    def __init__(self, cli):
+    def __init__(self, cli: "Cli"):
         self.cli = cli
         self.s3_client = self.cli.client
 
