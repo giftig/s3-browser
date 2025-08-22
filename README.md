@@ -54,11 +54,8 @@ uv run s3-browser --endpoint http://localhost:19000
 
 ## Releasing
 
-Create a source distribution with upload it to pypi using uv:
-
-`make dist && make dist/release`
-
-This requires `UV_PUBLISH_USERNAME` and `UV_PUBLISH_PASSWORD` to be set.
+Bump the version in `pyproject.toml` and push the corresponding tag, then release via github.
+This will run the `publish` workflow.
 
 [prompt-toolkit]: https://python-prompt-toolkit.readthedocs.io/en/master/
 [usage-1]: readme-resources/usage-1.png "Usage example"
